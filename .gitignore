@@ -1,0 +1,5 @@
+node_modules/
+.dfx/
+dist/
+build/
+.DS_Store
