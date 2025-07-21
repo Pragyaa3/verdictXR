@@ -48,6 +48,7 @@ const ThreeCourtroom: React.FC = () => {
     animate();
 
     // WebXR button
+    // @ts-ignore
     if (WebGL.isWebGLAvailable()) {
       document.body.appendChild(VRButton.createButton(renderer));
     } else {

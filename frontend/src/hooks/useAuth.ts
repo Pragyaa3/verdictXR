@@ -9,10 +9,12 @@ export function useInternetIdentity() {
   useEffect(() => {
     AuthClient.create().then((c) => {
       setClient(c);
-      if (c.isAuthenticated()) {
-        setPrincipal(c.getIdentity().getPrincipal().toText());
-        setIsAuthenticated(true);
-      }
+      c.isAuthenticated().then((auth) => {
+        if (auth) {
+          setPrincipal(c.getIdentity().getPrincipal().toText());
+          setIsAuthenticated(true);
+        }
+      });
     });
   }, []);
 

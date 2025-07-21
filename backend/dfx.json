@@ -5,10 +5,5 @@
       "type": "motoko"
     }
   },
-  "defaults": {
-    "build": {
-      "packtool": "vessel"
-    }
-  },
   "version": 1
 } 

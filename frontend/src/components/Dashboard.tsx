@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { courtBackend } from '../api/canister';
+import { Principal } from '@dfinity/principal';
 
 interface DashboardProps {
   principal: string;
@@ -17,12 +18,15 @@ const Dashboard: React.FC<DashboardProps> = ({ principal }) => {
   // For MVP, use principal as both plaintiff and defendant for trial creation
   const handleCreateTrial = async () => {
     try {
-      const id = await courtBackend.createTrial(principal, principal);
-      setCurrentTrialId(id.toString());
+      console.log('Creating trial with principal:', principal);
+      const principalObj = Principal.fromText(principal);
+      const id = await courtBackend.createTrial(principalObj, principalObj);
+      setCurrentTrialId((id as number).toString());
       setJoinedTrial(true);
       setLog((l) => [...l, `Trial created! ID: ${id}`]);
     } catch (e) {
-      setLog((l) => [...l, 'Error creating trial']);
+      setLog((l) => [...l, 'Error creating trial: ' + (e instanceof Error ? e.message : JSON.stringify(e))]);
+      console.error('Error creating trial:', e);
     }
   };
   const handleJoinTrial = async () => {
@@ -55,11 +59,25 @@ const Dashboard: React.FC<DashboardProps> = ({ principal }) => {
   };
   const handleAIJudge = async () => {
     try {
-      await courtBackend.setAIVerdict(Number(currentTrialId), 'Sample AI verdict and reasoning.');
-      setAIResponse('AI Judge: Sample AI verdict and reasoning.');
-      setLog((l) => [...l, 'AI Judge: Sample AI verdict and reasoning.']);
+      setLog((l) => [...l, 'Requesting AI verdict...']);
+      // Fetch trial data from backend
+      const trial = await courtBackend.getTrial(Number(currentTrialId));
+      // Custom replacer to handle BigInt
+      const replacer = (key: string, value: unknown) => typeof value === 'bigint' ? value.toString() : value;
+      // Call local AI judge service
+      const response = await fetch('http://localhost:5000/ai-judge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trial }, replacer),
+      });
+      const data = await response.json();
+      setAIResponse(data.verdict);
+      setLog((l) => [...l, 'AI Judge: ' + data.verdict]);
+      // Store on-chain
+      await courtBackend.setAIVerdict(Number(currentTrialId), data.verdict);
     } catch (e) {
-      setLog((l) => [...l, 'Error with AI judge']);
+      setLog((l) => [...l, 'Error with AI judge: ' + (e instanceof Error ? e.message : JSON.stringify(e))]);
+      console.error('Error with AI judge:', e);
     }
   };
 

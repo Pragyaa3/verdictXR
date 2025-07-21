@@ -5,6 +5,14 @@ import Time "mo:base/Time";
 import Array "mo:base/Array";
 
 actor CourtBackend {
+  func findIndex<T>(arr: [T], pred: (T) -> Bool) : ?Nat {
+    var i = 0;
+    for (x in arr.vals()) {
+      if (pred(x)) { return ?i };
+      i += 1;
+    };
+    return null;
+  };
   public type Role = { #Judge; #Plaintiff; #Defendant; #Observer; #AIJudge; #AILawyer };
   public type Evidence = {
     id: Nat;
@@ -54,7 +62,7 @@ actor CourtBackend {
   };
 
   public shared ({caller}) func joinTrial(trialId: Nat): async Bool {
-    let idx = Array.findIndex<Trial>(trials, func (t) = t.id == trialId);
+    let idx = findIndex<Trial>(trials, func (t) = t.id == trialId);
     switch (idx) {
       case null { false };
       case (?i) {
@@ -72,7 +80,7 @@ actor CourtBackend {
             aiVerdict = t.aiVerdict;
             status = t.status;
           };
-          trials[i] := updated;
+          trials := Array.tabulate<Trial>(trials.size(), func (j) { if (j == i) updated else trials[j] });
         };
         true
       }
@@ -80,13 +88,13 @@ actor CourtBackend {
   };
 
   public shared ({caller}) func submitEvidence(trialId: Nat, url: Text, description: Text): async Bool {
-    let idx = Array.findIndex<Trial>(trials, func (t) = t.id == trialId);
+    let idx = findIndex<Trial>(trials, func (t) = t.id == trialId);
     switch (idx) {
       case null { false };
       case (?i) {
         let t = trials[i];
         let evidence = {
-          id = Nat.fromNat(t.evidence.size());
+          id = t.evidence.size();
           uploader = caller;
           url = url;
           description = description;
@@ -104,14 +112,14 @@ actor CourtBackend {
           aiVerdict = t.aiVerdict;
           status = t.status;
         };
-        trials[i] := updated;
+        trials := Array.tabulate<Trial>(trials.size(), func (j) { if (j == i) updated else trials[j] });
         true
       }
     }
   };
 
   public shared ({caller}) func postMessage(trialId: Nat, role: Role, content: Text): async Bool {
-    let idx = Array.findIndex<Trial>(trials, func (t) = t.id == trialId);
+    let idx = findIndex<Trial>(trials, func (t) = t.id == trialId);
     switch (idx) {
       case null { false };
       case (?i) {
@@ -134,14 +142,14 @@ actor CourtBackend {
           aiVerdict = t.aiVerdict;
           status = t.status;
         };
-        trials[i] := updated;
+        trials := Array.tabulate<Trial>(trials.size(), func (j) { if (j == i) updated else trials[j] });
         true
       }
     }
   };
 
   public shared ({caller}) func setVerdict(trialId: Nat, verdict: Text): async Bool {
-    let idx = Array.findIndex<Trial>(trials, func (t) = t.id == trialId);
+    let idx = findIndex<Trial>(trials, func (t) = t.id == trialId);
     switch (idx) {
       case null { false };
       case (?i) {
@@ -158,14 +166,14 @@ actor CourtBackend {
           aiVerdict = t.aiVerdict;
           status = "closed";
         };
-        trials[i] := updated;
+        trials := Array.tabulate<Trial>(trials.size(), func (j) { if (j == i) updated else trials[j] });
         true
       }
     }
   };
 
   public shared ({caller}) func setAIVerdict(trialId: Nat, aiVerdict: Text): async Bool {
-    let idx = Array.findIndex<Trial>(trials, func (t) = t.id == trialId);
+    let idx = findIndex<Trial>(trials, func (t) = t.id == trialId);
     switch (idx) {
       case null { false };
       case (?i) {
@@ -182,7 +190,7 @@ actor CourtBackend {
           aiVerdict = ?aiVerdict;
           status = t.status;
         };
-        trials[i] := updated;
+        trials := Array.tabulate<Trial>(trials.size(), func (j) { if (j == i) updated else trials[j] });
         true
       }
     }
