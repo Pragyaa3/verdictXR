@@ -2,7 +2,11 @@ import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../dfx_generated/court_backend/service.did.js';
 import { createActor } from '../dfx_generated/court_backend/index.js';
 
-const canisterId = process.env.REACT_APP_BACKEND_CANISTER_ID || 'court_backend_canister_id_here';
+const canisterId = process.env.CANISTER_ID_COURT_BACKEND;
+
+if (!canisterId) {
+  throw new Error("The CANISTER_ID_COURT_BACKEND environment variable is not set. Check your .env file and vite.config.ts");
+}
 
 const agent = new HttpAgent({ host: 'http://localhost:4943' });
 

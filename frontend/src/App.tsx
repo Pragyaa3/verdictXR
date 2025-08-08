@@ -6,10 +6,10 @@ import CourtroomVR from './components/CourtroomVR';
 const App: React.FC = () => {
   const { principal, isAuthenticated, login, logout } = useInternetIdentity();
   const [role, setRole] = useState<string | null>(null);
-  const [trialId, setTrialId] = useState<string | null>(null);
+  const [trialId, setTrialId] = useState<bigint | null>(null);
 
   // Handler to be called when user selects role and joins/creates a trial
-  const handleDashboardComplete = (selectedRole: string, joinedTrialId: string) => {
+  const handleDashboardComplete = (selectedRole: string, joinedTrialId: bigint) => {
     setRole(selectedRole);
     setTrialId(joinedTrialId);
   };
