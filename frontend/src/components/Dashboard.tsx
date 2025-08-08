@@ -6,7 +6,7 @@ import { Participant, Evidence3D } from '../three/CourtroomScene';
 
 interface DashboardProps {
   principal: string;
-  onComplete: (role: string, trialId: string) => void;
+  onComplete: (role: string, trialId: bigint) => void;
 }
 
 const roles = [
@@ -118,13 +118,13 @@ const styles = {
 
 const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const [selectedRole, setSelectedRole] = useState<string>('');
-  const [trialId, setTrialId] = useState<string>('');
+  const [trialIdInput, setTrialIdInput] = useState<string>('');
   const [joinedTrial, setJoinedTrial] = useState<boolean>(false);
   const [evidence, setEvidence] = useState<string>('');
   const [chat, setChat] = useState<string>('');
   const [log, setLog] = useState<string[]>([]);
   const [aiResponse, setAIResponse] = useState<string>('');
-  const [currentTrialId, setCurrentTrialId] = useState<string>('');
+  const [currentTrialId, setCurrentTrialId] = useState<bigint | null>(null);
   const [loading, setLoading] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
@@ -133,7 +133,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   // Fetch trial data when joinedTrial or currentTrialId changes
   useEffect(() => {
     if (joinedTrial && currentTrialId) {
-      courtBackend.getTrial(Number(currentTrialId)).then(setTrialData);
+      courtBackend.getTrial(currentTrialId).then(setTrialData);
     }
   }, [joinedTrial, currentTrialId]);
 
@@ -144,12 +144,13 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     setLoading('Creating trial...'); setError(''); setSuccess('');
     try {
       const principalObj = Principal.fromText(principal);
-      const id = await courtBackend.createTrial(principalObj, principalObj);
-      setCurrentTrialId((id as number).toString());
+      // const id: bigint = await courtBackend.createTrial(principalObj, principalObj);
+      const id = (await courtBackend.createTrial(principalObj, principalObj)) as bigint; 
+      setCurrentTrialId(id);
       setJoinedTrial(true);
       setLog((l) => [...l, `Trial created! ID: ${id}`]);
-      setSuccess('Trial created successfully!');
-      onComplete(selectedRole, (id as number).toString());
+      setSuccess(`Trial created successfully! ID: ${id.toString()}`);
+      onComplete(selectedRole, id);
     } catch (e) {
       setError('Error creating trial: ' + (e instanceof Error ? e.message : JSON.stringify(e)));
     } finally {
@@ -159,12 +160,13 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const handleJoinTrial = async () => {
     setLoading('Joining trial...'); setError(''); setSuccess('');
     try {
-      await courtBackend.joinTrial(Number(trialId));
-      setCurrentTrialId(trialId);
+      const idToJoin = BigInt(trialIdInput);
+      await courtBackend.joinTrial(idToJoin);
+      setCurrentTrialId(idToJoin);
       setJoinedTrial(true);
-      setLog((l) => [...l, `Joined trial ${trialId}`]);
+      setLog((l) => [...l, `Joined trial ${trialIdInput}`]);
       setSuccess('Joined trial successfully!');
-      onComplete(selectedRole, trialId);
+      onComplete(selectedRole, idToJoin);
     } catch (e) {
       setError('Error joining trial');
     } finally {
@@ -174,7 +176,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const handleUploadEvidence = async () => {
     setLoading('Uploading evidence...'); setError(''); setSuccess('');
     try {
-      await courtBackend.submitEvidence(Number(currentTrialId), evidence, '');
+      await courtBackend.submitEvidence(currentTrialId!, evidence, '');
       setLog((l) => [...l, `Evidence uploaded: ${evidence}`]);
       setEvidence('');
       setSuccess('Evidence uploaded!');
@@ -187,7 +189,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const handleSendChat = async () => {
     setLoading('Sending message...'); setError(''); setSuccess('');
     try {
-      await courtBackend.postMessage(Number(currentTrialId), { 'Plaintiff': null }, chat);
+      await courtBackend.postMessage(currentTrialId!, { [selectedRole]: null }, chat);
       setLog((l) => [...l, `You: ${chat}`]);
       setChat('');
       setSuccess('Message sent!');
@@ -202,7 +204,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     try {
       setLog((l) => [...l, 'Requesting AI verdict...']);
       // Fetch trial data from backend
-      const trial = await courtBackend.getTrial(Number(currentTrialId));
+      const trial = await courtBackend.getTrial(currentTrialId!);
       // Custom replacer to handle BigInt
       const replacer = (key: string, value: unknown) => typeof value === 'bigint' ? value.toString() : value;
       // Call local AI judge service
@@ -215,8 +217,8 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       setAIResponse(data.verdict);
       setLog((l) => [...l, 'AI Judge: ' + data.verdict]);
       setSuccess('AI verdict received!');
-      // Store on-chain
-      await courtBackend.setAIVerdict(Number(currentTrialId), data.verdict);
+      // Store on-chain (assuming setAIVerdict takes a bigint)
+      await courtBackend.setAIVerdict(currentTrialId!, data.verdict);
     } catch (e) {
       setError('Error with AI judge: ' + (e instanceof Error ? e.message : JSON.stringify(e)));
     } finally {
@@ -278,12 +280,12 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               <input
                 style={styles.input}
                 type="text"
-                placeholder="Enter Trial ID to join"
-                value={trialId}
-                onChange={e => setTrialId(e.target.value)}
+                placeholder="Enter Trial ID"
+                value={trialIdInput}
+                onChange={e => setTrialIdInput(e.target.value)}
                 disabled={!!loading}
               />
-              <button style={styles.button} onClick={handleJoinTrial} disabled={!!loading || !trialId}>Join Trial</button>
+              <button style={styles.button} onClick={handleJoinTrial} disabled={!!loading || !trialIdInput}>Join Trial</button>
             </div>
           </div>
         )}
@@ -291,7 +293,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
         {joinedTrial && (
           <>
             <div style={styles.summary}>
-              <div><span style={styles.label}>Current Trial ID:</span> {currentTrialId}</div>
+              <div><span style={styles.label}>Current Trial ID:</span> {currentTrialId?.toString()}</div>
               <div><span style={styles.label}>Your Principal:</span> {principal}</div>
               <div><span style={styles.label}>Role:</span> {selectedRole}</div>
               <div><span style={styles.label}>Status:</span> <span style={{color:'#fff'}}>Active</span></div>

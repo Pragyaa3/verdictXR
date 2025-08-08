@@ -2,9 +2,11 @@
   "name": "courtroom-frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@dfinity/agent": "^2.4.1",
@@ -17,7 +19,9 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@types/three": "^0.178.1",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0"
   },
   "browserslist": {
     "production": [
