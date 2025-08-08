@@ -1,11 +1,16 @@
 import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory as courtIDL } from '../../../.dfx/local/canisters/court_backend/court_backend.did.js';
+import { idlFactory } from '../dfx_generated/court_backend/service.did.js';
+import { createActor } from '../dfx_generated/court_backend/index.js';
 
 const canisterId = process.env.REACT_APP_BACKEND_CANISTER_ID || 'court_backend_canister_id_here';
 
 const agent = new HttpAgent({ host: 'http://localhost:4943' });
 
-export const courtBackend = Actor.createActor(courtIDL, {
+if (process.env.NODE_ENV === 'development') {
+  agent.fetchRootKey();
+}
+
+export const courtBackend = Actor.createActor(idlFactory, {
   agent,
   canisterId,
 });
