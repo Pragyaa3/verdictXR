@@ -4,7 +4,7 @@ import Principal "mo:base/Principal";
 import Time "mo:base/Time";
 import Array "mo:base/Array";
 
-actor CourtBackend {
+persistent actor CourtBackend {
   func findIndex<T>(arr: [T], pred: (T) -> Bool) : ?Nat {
     var i = 0;
     for (x in arr.vals()) {
@@ -203,4 +203,4 @@ actor CourtBackend {
   public query func listTrials(): async [Trial] {
     trials
   };
-} 
+}

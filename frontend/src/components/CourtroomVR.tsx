@@ -1,12 +1,17 @@
 import React, { useEffect, useRef } from 'react';
-import { initCourtroomScene } from '../three/CourtroomScene';
+import { initCourtroomSceneWithParticipants, Participant, Evidence3D } from '../three/CourtroomScene';
 
-const CourtroomVR: React.FC = () => {
+interface CourtroomVRProps {
+  participants: Participant[];
+  evidence: Evidence3D[];
+}
+
+const CourtroomVR: React.FC<CourtroomVRProps> = ({ participants, evidence }) => {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (mountRef.current) {
-      const { renderer } = initCourtroomScene(mountRef.current);
+      const { renderer } = initCourtroomSceneWithParticipants(mountRef.current, { participants, evidence });
       return () => {
         renderer.dispose();
         if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
@@ -14,7 +19,7 @@ const CourtroomVR: React.FC = () => {
         }
       };
     }
-  }, []);
+  }, [participants, evidence]);
 
   return <div ref={mountRef} style={{ width: '100vw', height: '60vh', background: '#222' }} />;
 };
