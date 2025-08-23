@@ -1,4 +1,5 @@
 import Nat "mo:base/Nat";
+import Int "mo:base/Int";
 import Text "mo:base/Text";
 import Principal "mo:base/Principal";
 import Time "mo:base/Time";
@@ -43,6 +44,9 @@ persistent actor CourtBackend {
   stable var trials : [Trial] = [];
   stable var nextId : Nat = 0;
 
+ // ✅ NEW stable var for invite codes
+  stable var trialInvites : [(Nat, Text)] = [];
+
   public shared ({caller}) func createTrial(plaintiff: Principal, defendant: Principal): async Nat {
     let trial = {
       id = nextId;
@@ -83,6 +87,30 @@ persistent actor CourtBackend {
           trials := Array.tabulate<Trial>(trials.size(), func (j) { if (j == i) updated else trials[j] });
         };
         true
+      }
+    }
+  };
+
+public shared func generateInviteCode(trialId: Nat) : async ?Text {
+  let idx = findIndex<Trial>(trials, func (t) = t.id == trialId);
+  switch (idx) {
+    case null { null };
+    case (?i) {
+      let code = "INV-" # Nat.toText(trialId) # "-" # Nat.toText(Int.abs(Time.now()));
+      trialInvites := Array.append(trialInvites, [(trialId, code)]);
+      ?code
+    }
+  }
+};
+
+ // ✅ NEW: Join with invite code
+  public shared ({caller}) func joinTrialWithCode(inviteCode: Text) : async Bool {
+    let entry = Array.find<(Nat, Text)>(trialInvites, func (p) { p.1 == inviteCode });
+    switch (entry) {
+      case null { false };
+      case (?pair) {
+        let trialId = pair.0;
+        await joinTrial(trialId)
       }
     }
   };
@@ -200,6 +228,20 @@ persistent actor CourtBackend {
     Array.find<Trial>(trials, func (t) = t.id == trialId)
   };
 
+    public query func getTrialFromCode(code : Text) : async ?Trial {
+    // Find the (trialId, code) pair
+    let entry = Array.find<(Nat, Text)>(trialInvites, func (p) { p.1 == code });
+    switch (entry) {
+      case null { null };
+      case (?pair) {
+        let trialId = pair.0;
+        // Look up the trial in trials array
+        Array.find<Trial>(trials, func (t) = t.id == trialId)
+      }
+    }
+  };
+
+  
   public query func listTrials(): async [Trial] {
     trials
   };

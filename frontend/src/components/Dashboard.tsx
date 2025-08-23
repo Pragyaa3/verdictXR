@@ -4,6 +4,26 @@ import { Principal } from '@dfinity/principal';
 import CourtroomVR from './CourtroomVR';
 import { Participant, Evidence3D } from '../three/CourtroomScene';
 
+interface Evidence {
+  id: bigint;
+  uploader: Principal;
+  url: string;
+  description: string;
+  timestamp: bigint;
+}
+
+interface Trial {
+  id: bigint;
+  judge: Principal;
+  plaintiff: Principal;
+  defendant: Principal;
+  observers: Principal[];
+  evidence: { url: string; description: string; uploader: Principal }[];
+  aiVerdict?: string | null;
+  verdict?: string | null;
+  status?: string;
+}
+
 interface DashboardProps {
   principal: string;
   onComplete: (role: string, trialId: bigint) => void;
@@ -116,11 +136,27 @@ const styles = {
   } as React.CSSProperties,
 };
 
+const roleToVariant = (uiRole: string) => {
+  switch (uiRole) {
+    case 'AI Judge': return { AIJudge: null };
+    case 'AI Lawyer': return { AILawyer: null };
+    case 'Judge': return { Judge: null };
+    case 'Plaintiff': return { Plaintiff: null };
+    case 'Defendant': return { Defendant: null };
+    case 'Observer': return { Observer: null };
+    default: return { Observer: null };
+  }
+};
+
 const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [trialIdInput, setTrialIdInput] = useState<string>('');
+  const [inviteCode, setInviteCode] = useState<string>('');  // ✅ new
+  const [myInviteCode, setMyInviteCode] = useState<string>('');  // ✅ generated when you create trial
   const [joinedTrial, setJoinedTrial] = useState<boolean>(false);
   const [evidence, setEvidence] = useState<string>('');
+  const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [evidenceDesc, setEvidenceDesc] = useState('');
   const [chat, setChat] = useState<string>('');
   const [log, setLog] = useState<string[]>([]);
   const [aiResponse, setAIResponse] = useState<string>('');
@@ -128,14 +164,20 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const [loading, setLoading] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const [trialData, setTrialData] = useState<any>(null);
+  const [trialData, setTrialData] = useState<Trial | null>(null);
 
   // Fetch trial data when joinedTrial or currentTrialId changes
   useEffect(() => {
     if (joinedTrial && currentTrialId) {
-      courtBackend.getTrial(currentTrialId).then(setTrialData);
+      courtBackend.getTrial(currentTrialId)
+        .then((t) => {
+          if (t) setTrialData(t as Trial); // ✅ assert type here
+          else setError('Trial not found');
+        })
+        .catch(e => setError('Failed to fetch trial'));
     }
   }, [joinedTrial, currentTrialId]);
+
 
   // Only allow trial actions after role is selected
   const canProceed = !!selectedRole;
@@ -144,19 +186,63 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     setLoading('Creating trial...'); setError(''); setSuccess('');
     try {
       const principalObj = Principal.fromText(principal);
-      // const id: bigint = await courtBackend.createTrial(principalObj, principalObj);
-      const id = (await courtBackend.createTrial(principalObj, principalObj)) as bigint; 
+      const id = (await courtBackend.createTrial(principalObj, principalObj)) as bigint;
       setCurrentTrialId(id);
       setJoinedTrial(true);
       setLog((l) => [...l, `Trial created! ID: ${id}`]);
       setSuccess(`Trial created successfully! ID: ${id.toString()}`);
       onComplete(selectedRole, id);
+
+      // ✅ Generate invite code
+      const code = await courtBackend.generateInviteCode(id);
+      if (code) {
+        setMyInviteCode(code as string);
+        setLog((l) => [...l, `Invite code generated: ${code}`]);
+      }
     } catch (e) {
       setError('Error creating trial: ' + (e instanceof Error ? e.message : JSON.stringify(e)));
     } finally {
       setLoading('');
     }
   };
+
+  const handleJoinWithCode = async () => {
+    setLoading('Joining with invite code...');
+    setError('');
+    setSuccess('');
+
+    try {
+      // Call backend to join trial
+      const ok = await courtBackend.joinTrialWithCode(inviteCode);
+
+      if (ok) {
+        setJoinedTrial(true);
+        setSuccess('Joined trial with invite code!');
+        setLog((l) => [...l, `Joined with invite code: ${inviteCode}`]);
+
+        // 🔧 Now fetch trialId linked to this invite code
+        if (courtBackend.getTrialFromCode) {
+          const trial = (await courtBackend.getTrialFromCode(inviteCode)) as Trial;
+          if (trial) {
+            setCurrentTrialId(trial.id);
+            onComplete(selectedRole, trial.id);
+          }
+
+        }
+
+
+      } else {
+        setError('Invalid invite code');
+      }
+
+    } catch (e) {
+      setError('Error joining with invite code');
+    } finally {
+      setLoading('');
+    }
+  };
+
+
   const handleJoinTrial = async () => {
     setLoading('Joining trial...'); setError(''); setSuccess('');
     try {
@@ -176,9 +262,9 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const handleUploadEvidence = async () => {
     setLoading('Uploading evidence...'); setError(''); setSuccess('');
     try {
-      await courtBackend.submitEvidence(currentTrialId!, evidence, '');
-      setLog((l) => [...l, `Evidence uploaded: ${evidence}`]);
-      setEvidence('');
+      await courtBackend.submitEvidence(currentTrialId!, evidenceUrl, evidenceDesc);
+      setLog((l) => [...l, `Evidence uploaded: ${evidenceDesc} (${evidenceUrl})`]);
+      setEvidenceUrl(''); setEvidenceDesc('');
       setSuccess('Evidence uploaded!');
     } catch (e) {
       setError('Error uploading evidence');
@@ -186,10 +272,11 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       setLoading('');
     }
   };
+
   const handleSendChat = async () => {
     setLoading('Sending message...'); setError(''); setSuccess('');
     try {
-      await courtBackend.postMessage(currentTrialId!, { [selectedRole]: null }, chat);
+      await courtBackend.postMessage(currentTrialId!, roleToVariant(selectedRole), chat);
       setLog((l) => [...l, `You: ${chat}`]);
       setChat('');
       setSuccess('Message sent!');
@@ -232,26 +319,27 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     participants.push({ role: 'Judge', principal: trialData.judge.toString(), displayName: 'Judge' });
     participants.push({ role: 'Plaintiff', principal: trialData.plaintiff.toString(), displayName: 'Plaintiff' });
     participants.push({ role: 'Defendant', principal: trialData.defendant.toString(), displayName: 'Defendant' });
-    if (trialData.observers) {
-      for (const obs of trialData.observers) {
-        participants.push({ role: 'Observer', principal: obs.toString(), displayName: 'Observer' });
-      }
-    }
-    // Optionally add AI roles if present
+
+    trialData.observers.forEach((obs) => {
+      participants.push({ role: 'Observer', principal: obs.toString(), displayName: 'Observer' });
+    });
+
     if (trialData.aiVerdict) {
       participants.push({ role: 'AI Judge', principal: 'AI', displayName: 'AI Judge' });
     }
   }
 
+
   // Prepare evidence for VR scene
   let evidence3d: Evidence3D[] = [];
   if (trialData && trialData.evidence) {
-    evidence3d = trialData.evidence.map((ev: any) => ({
+    evidence3d = trialData.evidence.map((ev) => ({
       url: ev.url,
       description: ev.description,
-      uploader: ev.uploader?.toString?.() || 'Unknown',
+      uploader: ev.uploader.toString(),
     }));
   }
+
 
   return (
     <div style={styles.container}>
@@ -287,8 +375,30 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               />
               <button style={styles.button} onClick={handleJoinTrial} disabled={!!loading || !trialIdInput}>Join Trial</button>
             </div>
+
+            <div style={{ margin: '18px 0' }}>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder="Enter Invite Code"
+                value={inviteCode}
+                onChange={e => setInviteCode(e.target.value)}
+                disabled={!!loading}
+              />
+              <button style={styles.button} onClick={handleJoinWithCode} disabled={!!loading || !inviteCode}>
+                Join with Code
+              </button>
+            </div>
           </div>
         )}
+
+        {myInviteCode && (
+          <div style={styles.summary}>
+            <div><span style={styles.label}>Invite Code:</span> {myInviteCode}</div>
+            <div style={{ fontSize: 14, color: '#fff' }}>Share this with others to let them join.</div>
+          </div>
+        )}
+
         {/* Show trial info and actions if joined */}
         {joinedTrial && (
           <>
@@ -296,7 +406,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               <div><span style={styles.label}>Current Trial ID:</span> {currentTrialId?.toString()}</div>
               <div><span style={styles.label}>Your Principal:</span> {principal}</div>
               <div><span style={styles.label}>Role:</span> {selectedRole}</div>
-              <div><span style={styles.label}>Status:</span> <span style={{color:'#fff'}}>Active</span></div>
+              <div><span style={styles.label}>Status:</span> <span style={{ color: '#fff' }}>Active</span></div>
             </div>
             {/* Add VR Courtroom */}
             <div style={{ margin: '32px 0' }}>
@@ -307,13 +417,26 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               <input
                 style={styles.input}
                 type="text"
-                placeholder="Evidence URL/desc"
-                value={evidence}
-                onChange={e => setEvidence(e.target.value)}
+                placeholder="Evidence URL"
+                value={evidenceUrl}
+                onChange={e => setEvidenceUrl(e.target.value)}
                 disabled={!!loading}
               />
-              <button style={styles.button} onClick={handleUploadEvidence} disabled={!!loading || !evidence}>Upload</button>
+              <input
+                style={styles.input}
+                type="text"
+                placeholder="Short description"
+                value={evidenceDesc}
+                onChange={e => setEvidenceDesc(e.target.value)}
+                disabled={!!loading}
+              />
+              <button style={styles.button}
+                onClick={handleUploadEvidence}
+                disabled={!!loading || !evidenceUrl || !evidenceDesc}>
+                Upload
+              </button>
             </div>
+
             <div style={styles.section}>
               <div style={styles.label}>Chat</div>
               <input
@@ -331,8 +454,8 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
             </div>
             <div style={styles.log}>
               <strong>Trial Log:</strong>
-              <ul style={{margin: '8px 0 0 0', padding: 0, listStyle: 'none'}}>
-                {log.map((entry, i) => <li key={i} style={{marginBottom: 4}}>{entry}</li>)}
+              <ul style={{ margin: '8px 0 0 0', padding: 0, listStyle: 'none' }}>
+                {log.map((entry, i) => <li key={i} style={{ marginBottom: 4 }}>{entry}</li>)}
               </ul>
             </div>
             {aiResponse && (
