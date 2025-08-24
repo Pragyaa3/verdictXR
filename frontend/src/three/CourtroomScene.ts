@@ -1,3 +1,4 @@
+//frontend/src/three/CourtroomScene.ts
 import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import ReactDOM from 'react-dom';
@@ -157,17 +158,23 @@ const roleAvatarMap: Record<string, { color: number; positions: [number, number,
   'Witness': { color: 0xccffcc, positions: [[-2, 1.0, -3.6]] },
   'AI Judge': { color: 0x00e6e6, positions: [[0.5, 1.3, -4.6], [-0.5, 1.3, -4.6]] },
   'AI Lawyer': { color: 0x00e6e6, positions: [[-2, 0.6, -1.2], [2, 0.6, -1.2]] },
-  'Observer': { color: 0xcccccc, positions: [
-    [-4, 0.6, 3.5], [-2, 0.6, 3.5], [0, 0.6, 3.5], [2, 0.6, 3.5], [4, 0.6, 3.5],
-    [-4, 0.6, 3.9], [-2, 0.6, 3.9], [0, 0.6, 3.9], [2, 0.6, 3.9], [4, 0.6, 3.9],
-  ] },
-  'Jury': { color: 0xffe4b5, positions: [
-    [3.1, 0.7, -3.8], [3.5, 0.7, -3.8], [3.9, 0.7, -3.8],
-    [3.1, 0.7, -3.4], [3.5, 0.7, -3.4], [3.9, 0.7, -3.4],
-  ] },
-  'Spectator': { color: 0xcccccc, positions: [
-    [-4, 0.6, 4.5], [-2, 0.6, 4.5], [0, 0.6, 4.5], [2, 0.6, 4.5], [4, 0.6, 4.5],
-  ] },
+  'Observer': {
+    color: 0xcccccc, positions: [
+      [-4, 0.6, 3.5], [-2, 0.6, 3.5], [0, 0.6, 3.5], [2, 0.6, 3.5], [4, 0.6, 3.5],
+      [-4, 0.6, 3.9], [-2, 0.6, 3.9], [0, 0.6, 3.9], [2, 0.6, 3.9], [4, 0.6, 3.9],
+    ]
+  },
+  'Jury': {
+    color: 0xffe4b5, positions: [
+      [3.1, 0.7, -3.8], [3.5, 0.7, -3.8], [3.9, 0.7, -3.8],
+      [3.1, 0.7, -3.4], [3.5, 0.7, -3.4], [3.9, 0.7, -3.4],
+    ]
+  },
+  'Spectator': {
+    color: 0xcccccc, positions: [
+      [-4, 0.6, 4.5], [-2, 0.6, 4.5], [0, 0.6, 4.5], [2, 0.6, 4.5], [4, 0.6, 4.5],
+    ]
+  },
 };
 
 // Update function signature
@@ -491,7 +498,7 @@ export function initCourtroomSceneWithParticipants(container: HTMLDivElement, ar
   const avatarInfoMap: Record<string, Participant> = {};
   const evidenceInfoMap: Record<string, Evidence3D> = {};
   // Always show judge, plaintiff, and defendant avatars with nameplates
-  const defaultRoles = [
+  const defaultRoles: { role: string; displayName: string; color: number; pos: [number, number, number] }[] = [
     { role: 'Judge', displayName: 'Judge', color: 0xffcccc, pos: [0, 1.3, -4.6] },
     { role: 'Plaintiff', displayName: 'Plaintiff', color: 0xccccff, pos: [-1.2, 0.6, -2.1] },
     { role: 'Defendant', displayName: 'Defendant', color: 0xffffcc, pos: [1.2, 0.6, -2.1] },
@@ -613,14 +620,14 @@ export function initCourtroomSceneWithParticipants(container: HTMLDivElement, ar
     const intersects = raycaster.intersectObjects(scene.children, false);
     scene.traverse(obj => {
       if (obj instanceof THREE.Mesh && (avatarInfoMap[obj.uuid] || evidenceInfoMap[obj.uuid])) {
-        (obj.material as any).emissive = (obj.material as any).emissive || { set: () => {} };
+        (obj.material as any).emissive = (obj.material as any).emissive || { set: () => { } };
         (obj.material as any).emissive.set(0x000000);
       }
     });
     if (intersects.length > 0) {
       const obj = intersects[0].object;
       if (obj instanceof THREE.Mesh && (avatarInfoMap[obj.uuid] || evidenceInfoMap[obj.uuid])) {
-        (obj.material as any).emissive = (obj.material as any).emissive || { set: () => {} };
+        (obj.material as any).emissive = (obj.material as any).emissive || { set: () => { } };
         (obj.material as any).emissive.set(0xbfa14a);
       }
     }

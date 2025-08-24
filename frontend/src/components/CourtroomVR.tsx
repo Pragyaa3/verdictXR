@@ -1,3 +1,4 @@
+//frontend/src/components/CourtroomVR.tsx
 import React, { useEffect, useRef } from 'react';
 import { initCourtroomSceneWithParticipants, Participant, Evidence3D } from '../three/CourtroomScene';
 

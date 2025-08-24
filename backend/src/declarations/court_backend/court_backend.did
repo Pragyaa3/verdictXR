@@ -1,29 +1,30 @@
 type Trial = 
  record {
    aiVerdict: opt text;
-   defendant: principal;
+   caseDetails: opt text;
+   caseTitle: text;
+   createdAt: int;
+   defendant: opt principal;
    evidence: vec Evidence;
    id: nat;
-   judge: principal;
+   judge: opt principal;
    log: vec Message;
    observers: vec principal;
-   plaintiff: principal;
+   participants: vec Participant;
+   plaintiff: opt principal;
    status: text;
    verdict: opt text;
  };
-type Role = 
- variant {
-   AIJudge;
-   AILawyer;
-   Defendant;
-   Judge;
-   Observer;
-   Plaintiff;
+type Participant = 
+ record {
+   joinedAt: int;
+   "principal": principal;
+   role: text;
  };
 type Message = 
  record {
    content: text;
-   role: Role;
+   role: text;
    sender: principal;
    timestamp: int;
  };
@@ -36,12 +37,24 @@ type Evidence =
    url: text;
  };
 service : {
-  createTrial: (principal, principal) -> (nat);
+  createTrial: (principal, text) -> (nat);
+  generateInviteCode: (nat) -> (opt text);
   getTrial: (nat) -> (opt Trial) query;
-  joinTrial: (nat) -> (bool);
+  getTrialFromCode: (text) -> (opt Trial) query;
+  getTrialStats: () ->
+   (record {
+      closedTrials: nat;
+      openTrials: nat;
+      totalEvidence: nat;
+    }) query;
+  getTrialsByParticipant: (principal) -> (vec Trial) query;
+  joinTrial: (nat, principal, text) -> (bool);
+  joinTrialWithCode: (text, principal, text) -> (bool);
   listTrials: () -> (vec Trial) query;
-  postMessage: (nat, Role, text) -> (bool);
+  postMessage: (nat, text, text) -> (bool);
   setAIVerdict: (nat, text) -> (bool);
+  setCaseDetails: (nat, text) -> (bool);
+  setCaseTitle: (nat, text) -> (bool);
   setVerdict: (nat, text) -> (bool);
-  submitEvidence: (nat, text, text) -> (bool);
+  submitEvidence: (nat, text, text, principal) -> (bool);
 }

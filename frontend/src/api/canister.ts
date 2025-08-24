@@ -1,5 +1,6 @@
+//frontend/src/api/canister.ts
 import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../dfx_generated/court_backend/service.did.js';
+import { idlFactory } from '../dfx_generated/court_backend';
 import { createActor } from '../dfx_generated/court_backend/index.js';
 import { Principal } from '@dfinity/principal';
 
@@ -20,16 +21,25 @@ const actor = Actor.createActor(idlFactory, {
   canisterId,
 });
 
+interface Evidence {
+  id: bigint;
+  uploader: Principal;
+  url: string;
+  description: string;
+  timestamp: bigint;
+}
+
 interface Trial {
   id: bigint;
-  judge: Principal;
-  plaintiff: Principal;
-  defendant: Principal;
+  judge: Principal | null;
+  plaintiff: Principal | null;
+  defendant: Principal | null;
   observers: Principal[];
-  evidence: { url: string; description: string; uploader: Principal }[];
+  evidence: Evidence[];
   aiVerdict?: string | null;
   verdict?: string | null;
   status?: string;
+  caseDetails?: string;
 }
 
 interface TrialRecord {
@@ -44,14 +54,15 @@ const inviteCodeMap: Map<string, bigint> = new Map();
 
 export const courtBackend = {
   // Create a trial
-  createTrial: async (principalId: Principal, role: string): Promise<bigint> => {
-    const id = BigInt(Math.floor(Math.random() * 1000000)); // simple auto-generated ID
+  createTrial: async (creator: Principal, role: string): Promise<bigint> => {
+    const id = BigInt(Math.floor(Math.random() * 1000000));
     const now = BigInt(Date.now());
+
     const trial: Trial = {
       id,
-      judge: role === 'Judge' ? principalId : Principal.fromText('aaaaa-aa'),
-      plaintiff: role === 'Plaintiff' ? principalId : Principal.fromText('aaaaa-aa'),
-      defendant: role === 'Defendant' ? principalId : Principal.fromText('aaaaa-aa'),
+      judge: role === 'Judge' ? creator : null,  // Use the passed creator
+      plaintiff: role === 'Plaintiff' ? creator : null,
+      defendant: role === 'Defendant' ? creator : null,
       observers: [],
       evidence: [],
       status: 'Active',
@@ -60,7 +71,7 @@ export const courtBackend = {
     const record: TrialRecord = {
       trial,
       timestamp: now,
-      participants: [{ principal: principalId, role, joinedAt: now }],
+      participants: [{ principal: creator, role, joinedAt: now }],  // Use creator here too
     };
 
     trialCache.set(id, record);
@@ -131,15 +142,31 @@ export const courtBackend = {
     return await courtBackend.getTrial(trialId);
   },
 
+  setCaseDetails: async (trialId: bigint, caseDetails: string) => {
+  const record = trialCache.get(trialId);
+  if (!record) throw new Error('Trial not found');
+  record.trial.caseDetails = caseDetails;
+  return true; // ✅ Backend returns Bool
+},
+
   // Submit evidence
-  submitEvidence: async (trialId: bigint, url: string, description: string, uploader: Principal) => {
-    const record = trialCache.get(trialId);
-    if (!record) throw new Error('Trial not found');
-    record.trial.evidence.push({ url, description, uploader });
-  },
+submitEvidence: async (trialId: bigint, url: string, description: string, uploader: Principal) => {
+  const record = trialCache.get(trialId);
+  if (!record) throw new Error('Trial not found');
+  
+  const evidence = {
+    id: BigInt(record.trial.evidence.length), // Generate sequential ID
+    uploader,
+    url,
+    description,
+    timestamp: BigInt(Date.now()) // Current timestamp
+  };
+  
+  record.trial.evidence.push(evidence);
+},
 
   // Post chat/message
-  postMessage: async (trialId: bigint, roleObj: any, content: string) => {
+  postMessage: async (trialId: bigint, role: string, content: string) => {
     // Just push to log (Dashboard already handles VR display)
     const record = trialCache.get(trialId);
     if (!record) throw new Error('Trial not found');
