@@ -11,37 +11,50 @@ export interface Evidence {
 }
 export interface Message {
   'content' : string,
-  'role' : Role,
+  'role' : string,
   'sender' : Principal,
   'timestamp' : bigint,
 }
-export type Role = { 'Defendant' : null } |
-  { 'Plaintiff' : null } |
-  { 'AIJudge' : null } |
-  { 'Judge' : null } |
-  { 'AILawyer' : null } |
-  { 'Observer' : null };
+export interface Participant {
+  'principal' : Principal,
+  'joinedAt' : bigint,
+  'role' : string,
+}
 export interface Trial {
   'id' : bigint,
   'log' : Array<Message>,
   'status' : string,
-  'judge' : Principal,
+  'participants' : Array<Participant>,
+  'createdAt' : bigint,
+  'judge' : [] | [Principal],
   'observers' : Array<Principal>,
   'verdict' : [] | [string],
-  'defendant' : Principal,
+  'caseDetails' : [] | [string],
+  'defendant' : [] | [Principal],
   'evidence' : Array<Evidence>,
   'aiVerdict' : [] | [string],
-  'plaintiff' : Principal,
+  'plaintiff' : [] | [Principal],
+  'caseTitle' : string,
 }
 export interface _SERVICE {
-  'createTrial' : ActorMethod<[Principal, Principal], bigint>,
+  'createTrial' : ActorMethod<[Principal, string], bigint>,
+  'generateInviteCode' : ActorMethod<[bigint], [] | [string]>,
   'getTrial' : ActorMethod<[bigint], [] | [Trial]>,
-  'joinTrial' : ActorMethod<[bigint], boolean>,
+  'getTrialFromCode' : ActorMethod<[string], [] | [Trial]>,
+  'getTrialStats' : ActorMethod<
+    [],
+    { 'closedTrials' : bigint, 'openTrials' : bigint, 'totalEvidence' : bigint }
+  >,
+  'getTrialsByParticipant' : ActorMethod<[Principal], Array<Trial>>,
+  'joinTrial' : ActorMethod<[bigint, Principal, string], boolean>,
+  'joinTrialWithCode' : ActorMethod<[string, Principal, string], boolean>,
   'listTrials' : ActorMethod<[], Array<Trial>>,
-  'postMessage' : ActorMethod<[bigint, Role, string], boolean>,
+  'postMessage' : ActorMethod<[bigint, string, string], boolean>,
   'setAIVerdict' : ActorMethod<[bigint, string], boolean>,
+  'setCaseDetails' : ActorMethod<[bigint, string], boolean>,
+  'setCaseTitle' : ActorMethod<[bigint, string], boolean>,
   'setVerdict' : ActorMethod<[bigint, string], boolean>,
-  'submitEvidence' : ActorMethod<[bigint, string, string], boolean>,
+  'submitEvidence' : ActorMethod<[bigint, string, string, Principal], boolean>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];
