@@ -33,9 +33,7 @@ const roles = [
   'Judge',
   'Plaintiff',
   'Defendant',
-  'Observer',
-  'AI Judge',
-  'AI Lawyer',
+  'Observer'
 ];
 
 const styles = {
@@ -183,22 +181,22 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const canProceed = !!selectedRole;
 
   const handleCreateTrial = async () => {
-    setLoading('Creating trial...'); setError(''); setSuccess('');
+    if (!selectedRole) return;
+    setLoading('Creating trial...');
+    setError(''); setSuccess('');
     try {
       const principalObj = Principal.fromText(principal);
-      const id = (await courtBackend.createTrial(principalObj, principalObj)) as bigint;
-      setCurrentTrialId(id);
+      const trialId: bigint = await courtBackend.createTrial(principalObj, selectedRole);
+      setCurrentTrialId(trialId);
       setJoinedTrial(true);
-      setLog((l) => [...l, `Trial created! ID: ${id}`]);
-      setSuccess(`Trial created successfully! ID: ${id.toString()}`);
-      onComplete(selectedRole, id);
+      setLog([...log, `Trial created! ID: ${trialId}`]);
+      setSuccess(`Trial created successfully! ID: ${trialId.toString()}`);
+      onComplete(selectedRole, trialId);
 
-      // ✅ Generate invite code
-      const code = await courtBackend.generateInviteCode(id);
-      if (code) {
-        setMyInviteCode(code as string);
-        setLog((l) => [...l, `Invite code generated: ${code}`]);
-      }
+      // Generate invite code
+      const code = await courtBackend.generateInviteCode(trialId);
+      setMyInviteCode(code);
+      setLog([...log, `Invite code generated: ${code}`]);
     } catch (e) {
       setError('Error creating trial: ' + (e instanceof Error ? e.message : JSON.stringify(e)));
     } finally {
@@ -212,8 +210,10 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     setSuccess('');
 
     try {
-      // Call backend to join trial
-      const ok = await courtBackend.joinTrialWithCode(inviteCode);
+      const principalObj = Principal.fromText(principal);
+
+      // ✅ Pass principal and role
+      const ok = await courtBackend.joinTrialWithCode(inviteCode, principalObj, selectedRole);
 
       if (ok) {
         setJoinedTrial(true);
@@ -242,15 +242,20 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     }
   };
 
-
   const handleJoinTrial = async () => {
-    setLoading('Joining trial...'); setError(''); setSuccess('');
+    setLoading('Joining trial...');
+    setError(''); setSuccess('');
     try {
       const idToJoin = BigInt(trialIdInput);
-      await courtBackend.joinTrial(idToJoin);
+      const valid = await courtBackend.getTrial(idToJoin);
+      if (!valid) {
+        setError('Trial ID not found!');
+        return;
+      }
+      await courtBackend.joinTrial(idToJoin, Principal.fromText(principal), selectedRole);
       setCurrentTrialId(idToJoin);
       setJoinedTrial(true);
-      setLog((l) => [...l, `Joined trial ${trialIdInput}`]);
+      setLog([...log, `Joined trial ${idToJoin}`]);
       setSuccess('Joined trial successfully!');
       onComplete(selectedRole, idToJoin);
     } catch (e) {
@@ -259,10 +264,14 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       setLoading('');
     }
   };
+
   const handleUploadEvidence = async () => {
     setLoading('Uploading evidence...'); setError(''); setSuccess('');
     try {
-      await courtBackend.submitEvidence(currentTrialId!, evidenceUrl, evidenceDesc);
+      const principalObj = Principal.fromText(principal);
+
+      // ✅ Pass uploader as Principal
+      await courtBackend.submitEvidence(currentTrialId!, evidenceUrl, evidenceDesc, principalObj);
       setLog((l) => [...l, `Evidence uploaded: ${evidenceDesc} (${evidenceUrl})`]);
       setEvidenceUrl(''); setEvidenceDesc('');
       setSuccess('Evidence uploaded!');
