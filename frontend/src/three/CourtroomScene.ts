@@ -490,6 +490,24 @@ export function initCourtroomSceneWithParticipants(container: HTMLDivElement, ar
   // Add a map from mesh.uuid to participant/evidence info
   const avatarInfoMap: Record<string, Participant> = {};
   const evidenceInfoMap: Record<string, Evidence3D> = {};
+  // Always show judge, plaintiff, and defendant avatars with nameplates
+  const defaultRoles = [
+    { role: 'Judge', displayName: 'Judge', color: 0xffcccc, pos: [0, 1.3, -4.6] },
+    { role: 'Plaintiff', displayName: 'Plaintiff', color: 0xccccff, pos: [-1.2, 0.6, -2.1] },
+    { role: 'Defendant', displayName: 'Defendant', color: 0xffffcc, pos: [1.2, 0.6, -2.1] },
+  ];
+  defaultRoles.forEach((p) => {
+    const bust = new THREE.Mesh(
+      new THREE.SphereGeometry(0.13, 16, 16),
+      new THREE.MeshStandardMaterial({ color: p.color })
+    );
+    bust.position.set(...p.pos);
+    scene.add(bust);
+    // Nameplate
+    const label = createTextSprite(p.displayName, '#6d4c41', 38, 'rgba(255,255,255,0.95)');
+    label.position.set(p.pos[0], p.pos[1] + 0.18, p.pos[2]);
+    scene.add(label);
+  });
   // Render avatars for each participant, assigning positions per role
   const roleCounts: Record<string, number> = {};
   participants.forEach((p, idx) => {

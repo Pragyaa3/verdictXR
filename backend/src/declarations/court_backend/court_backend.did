@@ -1,0 +1,47 @@
+type Trial = 
+ record {
+   aiVerdict: opt text;
+   defendant: principal;
+   evidence: vec Evidence;
+   id: nat;
+   judge: principal;
+   log: vec Message;
+   observers: vec principal;
+   plaintiff: principal;
+   status: text;
+   verdict: opt text;
+ };
+type Role = 
+ variant {
+   AIJudge;
+   AILawyer;
+   Defendant;
+   Judge;
+   Observer;
+   Plaintiff;
+ };
+type Message = 
+ record {
+   content: text;
+   role: Role;
+   sender: principal;
+   timestamp: int;
+ };
+type Evidence = 
+ record {
+   description: text;
+   id: nat;
+   timestamp: int;
+   uploader: principal;
+   url: text;
+ };
+service : {
+  createTrial: (principal, principal) -> (nat);
+  getTrial: (nat) -> (opt Trial) query;
+  joinTrial: (nat) -> (bool);
+  listTrials: () -> (vec Trial) query;
+  postMessage: (nat, Role, text) -> (bool);
+  setAIVerdict: (nat, text) -> (bool);
+  setVerdict: (nat, text) -> (bool);
+  submitEvidence: (nat, text, text) -> (bool);
+}
