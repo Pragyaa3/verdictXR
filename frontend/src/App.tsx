@@ -1,117 +1,597 @@
+//frontend/src/App.tsx
 import React, { useState } from 'react';
 import { useInternetIdentity } from './hooks/useAuth';
 import Dashboard from './components/Dashboard';
-import CourtroomVR from './components/CourtroomVR';
 
+// NEW: Enhanced Landing Page Component
+const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+  const styles = {
+    landingContainer: {
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+      display: 'flex',
+      flexDirection: 'column' as const,
+      fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+    },
+    
+    header: {
+      background: 'rgba(0,0,0,0.1)',
+      backdropFilter: 'blur(10px)',
+      padding: '20px 0',
+      borderBottom: '1px solid rgba(255,255,255,0.1)',
+    },
 
-const lightTheme = {
-  background: 'linear-gradient(135deg, #f5efe6 0%, #fffbe6 100%)',
-  minHeight: '100vh',
-  fontFamily: 'serif',
-  color: '#3e2723',
-  display: 'flex',
-  flexDirection: 'column' as const,
-  alignItems: 'center' as const,
-  justifyContent: 'center' as const,
-  padding: '0',
-};
+    nav: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '0 20px',
+    },
 
-const cardStyle = {
-  background: '#fff',
-  borderRadius: 18,
-  boxShadow: '0 4px 24px rgba(191,161,74,0.10)',
-  padding: '64px 48px',
-  minWidth: '440px',
-  maxWidth: '600px',
-  textAlign: 'center' as const,
-  border: '2px solid #bfa14a',
-};
+    logo: {
+      fontSize: '2rem',
+      fontWeight: '700',
+      color: '#fff',
+      textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+    },
 
-const titleStyle = {
-  fontFamily: 'serif',
-  fontWeight: 800,
-  fontSize: 44,
-  color: '#bfa14a',
-  marginBottom: 18,
-  letterSpacing: 2,
-  textShadow: '0 2px 8px #fffbe6',
-};
+    loginButton: {
+      background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+      color: '#333',
+      border: 'none',
+      borderRadius: '25px',
+      padding: '12px 30px',
+      fontSize: '16px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+    },
 
-const buttonStyle = {
-  background: '#bfa14a',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 8,
-  padding: '14px 32px',
-  fontWeight: 700,
-  fontSize: 20,
-  cursor: 'pointer',
-  marginTop: 18,
-  boxShadow: '0 2px 8px rgba(191,161,74,0.12)',
-  transition: 'background 0.2s',
-};
+    hero: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '60px 20px',
+      textAlign: 'center' as const,
+    },
 
-const App: React.FC = () => {
-  const { principal, isAuthenticated, login, logout } = useInternetIdentity();
-  const [role, setRole] = useState<string | null>(null);
-  const [trialId, setTrialId] = useState<bigint | null>(null);
+    heroContent: {
+      maxWidth: '800px',
+      color: '#fff',
+    },
 
-  // Handler to be called when user selects role and joins/creates a trial
-  const handleDashboardComplete = (selectedRole: string, joinedTrialId: bigint) => {
-    setRole(selectedRole);
-    setTrialId(joinedTrialId);
+    heroTitle: {
+      fontSize: '3.5rem',
+      fontWeight: '700',
+      marginBottom: '20px',
+      textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+      background: 'linear-gradient(45deg, #FFD700, #FFA500, #FF6B6B)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
+
+    heroSubtitle: {
+      fontSize: '1.3rem',
+      marginBottom: '30px',
+      opacity: 0.9,
+      lineHeight: 1.6,
+    },
+
+    featuresGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+      gap: '30px',
+      marginTop: '50px',
+    },
+
+    featureCard: {
+      background: 'rgba(255,255,255,0.1)',
+      backdropFilter: 'blur(10px)',
+      borderRadius: '20px',
+      padding: '30px',
+      border: '1px solid rgba(255,255,255,0.2)',
+      textAlign: 'center' as const,
+    },
+
+    featureIcon: {
+      fontSize: '3rem',
+      marginBottom: '15px',
+      display: 'block',
+    },
+
+    featureTitle: {
+      fontSize: '1.2rem',
+      fontWeight: '600',
+      marginBottom: '10px',
+    },
+
+    featureDesc: {
+      fontSize: '0.9rem',
+      opacity: 0.8,
+      lineHeight: 1.5,
+    },
+
+    ctaSection: {
+      background: 'rgba(0,0,0,0.1)',
+      backdropFilter: 'blur(10px)',
+      padding: '50px 20px',
+      textAlign: 'center' as const,
+      color: '#fff',
+    },
+
+    ctaTitle: {
+      fontSize: '2.5rem',
+      fontWeight: '700',
+      marginBottom: '20px',
+    },
+
+    ctaDesc: {
+      fontSize: '1.1rem',
+      marginBottom: '30px',
+      opacity: 0.9,
+      maxWidth: '600px',
+      margin: '0 auto 30px auto',
+    },
+
+    ctaButton: {
+      background: 'linear-gradient(45deg, #4CAF50, #45a049)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '30px',
+      padding: '18px 40px',
+      fontSize: '18px',
+      fontWeight: '700',
+      cursor: 'pointer',
+      boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      textTransform: 'uppercase',
+      letterSpacing: '1px',
+    },
+
+    footer: {
+      background: 'rgba(0,0,0,0.2)',
+      color: '#fff',
+      textAlign: 'center' as const,
+      padding: '30px 20px',
+      fontSize: '0.9rem',
+      opacity: 0.8,
+    }
   };
 
   return (
-  <div style={lightTheme}>
-      <div style={cardStyle}>
-        <div style={titleStyle}>VerdictXR</div>
-        {!isAuthenticated ? (
-          <>
-            <div style={{ fontSize: 20, marginBottom: 12, color: '#6d4c41' }}>
-              Welcome to the next-gen virtual courtroom experience.
+    <div style={styles.landingContainer}>
+      {/* Header */}
+      <header style={styles.header}>
+        <nav style={styles.nav}>
+          <div style={styles.logo}>⚖️ VR Legal Simulator</div>
+          <button 
+            style={styles.loginButton}
+            onClick={onLogin}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            🔐 Login with Internet Identity
+          </button>
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <section style={styles.hero}>
+        <div style={styles.heroContent}>
+          <h1 style={styles.heroTitle}>
+            Experience Legal Education in Virtual Reality
+          </h1>
+          <p style={styles.heroSubtitle}>
+            Immersive courtroom simulations with AI-powered lawyers and judges. 
+            Learn law through interactive trials and get both sides of every legal argument.
+          </p>
+
+          {/* Features Grid */}
+          <div style={styles.featuresGrid}>
+            <div style={styles.featureCard}>
+              <span style={styles.featureIcon}>🥽</span>
+              <h3 style={styles.featureTitle}>VR Courtroom</h3>
+              <p style={styles.featureDesc}>
+                Experience realistic courtroom environments with interactive 3D elements
+              </p>
             </div>
-            <button style={buttonStyle} onClick={login}>Connect to Internet Identity</button>
-          </>
-        ) : (
-          <>
-            <div style={{ marginBottom: 16, fontSize: 18 }}>
-              <strong>Principal:</strong> {principal}
+
+            <div style={styles.featureCard}>
+              <span style={styles.featureIcon}>🤖</span>
+              <h3 style={styles.featureTitle}>AI Legal Experts</h3>
+              <p style={styles.featureDesc}>
+                Dual AI lawyers provide arguments from both sides, plus an AI judge for verdicts
+              </p>
             </div>
-            <button style={{ ...buttonStyle, background: '#fffbe6', color: '#bfa14a', border: '1px solid #bfa14a' }} onClick={logout}>Logout</button>
-            {/* Show Dashboard until role and trial are set */}
-            {(!role || !trialId) ? (
-              <Dashboard principal={principal!} onComplete={handleDashboardComplete} />
-            ) : (
-              <CourtroomVR participants={[]} evidence={[]} />
-            )}
-          </>
-        )}
-      </div>
-      {/* About Section */}
-      <div style={{
-        position: 'fixed',
-        left: 0,
-        bottom: 0,
-        width: '100%',
-        padding: '12px 0',
-        background: 'linear-gradient(90deg, #fffbe6 0%, #f5efe6 100%)',
-        textAlign: 'center' as const,
-        color: '#6d4c41',
-        fontSize: 15,
-        borderTop: '1px solid #bfa14a',
-        boxShadow: '0 -2px 12px rgba(191,161,74,0.06)',
-        zIndex: 100
-      }}>
-        <h2 style={{ color: '#bfa14a', fontWeight: 700, fontSize: 20, marginBottom: 6 }}>About VerdictXR</h2>
-        <div style={{ maxWidth: 500, margin: '0 auto', lineHeight: 1.4 }}>
-          VerdictXR is a next-generation virtual courtroom platform for immersive, secure, and collaborative legal proceedings.<br />
-          <strong>Features:</strong> Secure login, 3D courtroom, evidence sharing, chat, and AI verdicts.<br />
-          <span style={{ color: '#bfa14a', fontWeight: 600 }}>Experience the future of justice.</span>
+
+            <div style={styles.featureCard}>
+              <span style={styles.featureIcon}>📚</span>
+              <h3 style={styles.featureTitle}>Real Law Books</h3>
+              <p style={styles.featureDesc}>
+                AI powered by actual legal precedents and case law for authentic education
+              </p>
+            </div>
+
+            <div style={styles.featureCard}>
+              <span style={styles.featureIcon}>🎭</span>
+              <h3 style={styles.featureTitle}>Multiple Roles</h3>
+              <p style={styles.featureDesc}>
+                Play as Judge, Plaintiff, Defendant, or Observer in interactive trials
+              </p>
+            </div>
+
+            <div style={styles.featureCard}>
+              <span style={styles.featureIcon}>📎</span>
+              <h3 style={styles.featureTitle}>Evidence System</h3>
+              <p style={styles.featureDesc}>
+                Submit and examine evidence in 3D space with detailed documentation
+              </p>
+            </div>
+
+            <div style={styles.featureCard}>
+              <span style={styles.featureIcon}>⛓️</span>
+              <h3 style={styles.featureTitle}>ICP Blockchain</h3>
+              <p style={styles.featureDesc}>
+                Secure, decentralized trials with Internet Identity authentication
+              </p>
+            </div>
+          </div>
         </div>
+      </section>
+
+      {/* CTA Section */}
+      <section style={styles.ctaSection}>
+        <h2 style={styles.ctaTitle}>Ready to Learn Law Through Experience?</h2>
+        <p style={styles.ctaDesc}>
+          Join the future of legal education. Create trials, consult AI lawyers, 
+          and get comprehensive legal analysis in an immersive VR environment.
+        </p>
+        <button 
+          style={styles.ctaButton}
+          onClick={onLogin}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.4)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+          }}
+        >
+          🚀 Start Your Legal Journey
+        </button>
+      </section>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <p>© 2024 VR Legal Simulator | Built on Internet Computer Protocol | Educational Use Only</p>
+      </footer>
+    </div>
+  );
+};
+
+// NEW: Enhanced About Page
+const AboutPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+  const styles = {
+    aboutContainer: {
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%)',
+      color: '#fff',
+      fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+    },
+
+    header: {
+      background: 'rgba(0,0,0,0.2)',
+      padding: '20px 0',
+      borderBottom: '1px solid rgba(255,255,255,0.1)',
+    },
+
+    nav: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '0 20px',
+    },
+
+    logo: {
+      fontSize: '1.8rem',
+      fontWeight: '700',
+    },
+
+    backButton: {
+      background: 'linear-gradient(45deg, #3498db, #2980b9)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '20px',
+      padding: '10px 25px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+    },
+
+    content: {
+      maxWidth: '1000px',
+      margin: '0 auto',
+      padding: '60px 20px',
+    },
+
+    title: {
+      fontSize: '3rem',
+      textAlign: 'center' as const,
+      marginBottom: '30px',
+      background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
+
+    sectionTitle: {
+      fontSize: '2rem',
+      marginBottom: '20px',
+      marginTop: '50px',
+      borderBottom: '2px solid #3498db',
+      paddingBottom: '10px',
+    },
+
+    text: {
+      fontSize: '1.1rem',
+      lineHeight: 1.7,
+      marginBottom: '20px',
+      opacity: 0.9,
+    },
+
+    featureList: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: '25px',
+      marginTop: '30px',
+    },
+
+    featureItem: {
+      background: 'rgba(255,255,255,0.05)',
+      borderRadius: '15px',
+      padding: '25px',
+      border: '1px solid rgba(255,255,255,0.1)',
+    },
+
+    featureIcon: {
+      fontSize: '2.5rem',
+      marginBottom: '15px',
+      display: 'block',
+    },
+
+    featureTitle: {
+      fontSize: '1.3rem',
+      fontWeight: '600',
+      marginBottom: '10px',
+    },
+
+    featureDesc: {
+      opacity: 0.8,
+      lineHeight: 1.5,
+    }
+  };
+
+  return (
+    <div style={styles.aboutContainer}>
+      <header style={styles.header}>
+        <nav style={styles.nav}>
+          <div style={styles.logo}>⚖️ About VR Legal Simulator</div>
+          <button style={styles.backButton} onClick={onBack}>
+            ← Back to Home
+          </button>
+        </nav>
+      </header>
+
+      <div style={styles.content}>
+        <h1 style={styles.title}>About Our Platform</h1>
+
+        <p style={styles.text}>
+          VR Legal Simulator represents the future of legal education, combining cutting-edge virtual reality 
+          technology with artificial intelligence to create immersive learning experiences. Built on the 
+          Internet Computer Protocol (ICP), our platform offers a decentralized, secure environment for 
+          legal education and simulation.
+        </p>
+
+        <h2 style={styles.sectionTitle}>🎯 Our Mission</h2>
+        <p style={styles.text}>
+          To revolutionize legal education by providing accessible, interactive, and comprehensive legal 
+          learning experiences that prepare students, professionals, and curious individuals for real-world 
+          legal scenarios through immersive technology and AI-powered guidance.
+        </p>
+
+        <h2 style={styles.sectionTitle}>🚀 Key Features</h2>
+        <div style={styles.featureList}>
+          <div style={styles.featureItem}>
+            <span style={styles.featureIcon}>🏛️</span>
+            <h3 style={styles.featureTitle}>Immersive VR Courtrooms</h3>
+            <p style={styles.featureDesc}>
+              Experience realistic courtroom environments with detailed 3D architecture, 
+              interactive elements, and authentic legal atmosphere.
+            </p>
+          </div>
+
+          <div style={styles.featureItem}>
+            <span style={styles.featureIcon}>⚖️</span>
+            <h3 style={styles.featureTitle}>Dual AI Lawyer System</h3>
+            <p style={styles.featureDesc}>
+              Get balanced legal perspectives with AI lawyers arguing both plaintiff and 
+              defense positions, powered by real legal databases and case law.
+            </p>
+          </div>
+
+          <div style={styles.featureItem}>
+            <span style={styles.featureIcon}>👨‍⚖️</span>
+            <h3 style={styles.featureTitle}>AI Judge Verdicts</h3>
+            <p style={styles.featureDesc}>
+              Receive comprehensive judicial analysis and verdicts from AI judges 
+              trained on legal principles and precedents.
+            </p>
+          </div>
+
+          <div style={styles.featureItem}>
+            <span style={styles.featureIcon}>🔐</span>
+            <h3 style={styles.featureTitle}>Blockchain Security</h3>
+            <p style={styles.featureDesc}>
+              Built on Internet Computer Protocol with Internet Identity authentication 
+              for secure, decentralized trial management.
+            </p>
+          </div>
+
+          <div style={styles.featureItem}>
+            <span style={styles.featureIcon}>📚</span>
+            <h3 style={styles.featureTitle}>Educational Focus</h3>
+            <p style={styles.featureDesc}>
+              Designed specifically for learning with structured legal analysis, 
+              case studies, and interactive learning pathways.
+            </p>
+          </div>
+
+          <div style={styles.featureItem}>
+            <span style={styles.featureIcon}>🌐</span>
+            <h3 style={styles.featureTitle}>Collaborative Trials</h3>
+            <p style={styles.featureDesc}>
+              Support for multiple participants with different roles, enabling 
+              collaborative learning and group legal simulations.
+            </p>
+          </div>
+        </div>
+
+        <h2 style={styles.sectionTitle}>🛠️ Technology Stack</h2>
+        <p style={styles.text}>
+          <strong>Frontend:</strong> React, TypeScript, Three.js for 3D rendering, WebXR for VR support<br/>
+          <strong>Backend:</strong> Motoko on Internet Computer Protocol (ICP)<br/>
+          <strong>AI Services:</strong> Integration with Gemini and OpenAI APIs for legal analysis<br/>
+          <strong>Authentication:</strong> Internet Identity for secure, anonymous access<br/>
+          <strong>Storage:</strong> Hybrid model combining on-chain and off-chain data management
+        </p>
+
+        <h2 style={styles.sectionTitle}>📖 Educational Use</h2>
+        <p style={styles.text}>
+          This platform is designed for educational and training purposes. While our AI systems 
+          are trained on legal databases and precedents, they should not be used as a substitute 
+          for professional legal advice. Always consult qualified legal professionals for actual 
+          legal matters.
+        </p>
+
+        <h2 style={styles.sectionTitle}>🎓 Target Audience</h2>
+        <p style={styles.text}>
+          • Law students seeking interactive learning experiences<br/>
+          • Legal professionals wanting to practice courtroom skills<br/>
+          • Educators looking for innovative teaching tools<br/>
+          • Anyone curious about legal processes and courtroom procedures<br/>
+          • Researchers studying legal education and VR applications
+        </p>
       </div>
     </div>
   );
+};
+
+// Main App Component
+const App: React.FC = () => {
+  const { principal, isAuthenticated, login, logout } = useInternetIdentity();
+  const [currentView, setCurrentView] = useState<'landing' | 'about' | 'dashboard'>('landing');
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [currentTrialId, setCurrentTrialId] = useState<bigint | null>(null);
+
+  const handleComplete = (role: string, trialId: bigint) => {
+    setSelectedRole(role);
+    setCurrentTrialId(trialId);
+  };
+
+  const handleLogin = () => {
+    if (isAuthenticated) {
+      setCurrentView('dashboard');
+    } else {
+      login();
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setCurrentView('landing');
+    setSelectedRole('');
+    setCurrentTrialId(null);
+  };
+
+  // Redirect to dashboard after successful login
+  React.useEffect(() => {
+    if (isAuthenticated && currentView === 'landing') {
+      setCurrentView('dashboard');
+    }
+  }, [isAuthenticated, currentView]);
+
+  // Navigation styles
+  const navStyles = {
+    dashboardNav: {
+      position: 'fixed' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      background: 'rgba(0,0,0,0.9)',
+      backdropFilter: 'blur(10px)',
+      padding: '15px 20px',
+      zIndex: 1000,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      color: '#fff',
+    },
+    
+    navButton: {
+      background: 'linear-gradient(45deg, #f44336, #d32f2f)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '20px',
+      padding: '8px 20px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+    }
+  };
+
+  if (currentView === 'about') {
+    return <AboutPage onBack={() => setCurrentView('landing')} />;
+  }
+
+  if (currentView === 'dashboard' && isAuthenticated && principal) {
+    return (
+      <>
+        {/* Dashboard Navigation */}
+        <nav style={navStyles.dashboardNav}>
+          <div style={{ fontSize: '18px', fontWeight: '600' }}>
+            ⚖️ VR Legal Simulator Dashboard
+          </div>
+          <div>
+            <button 
+              style={navStyles.navButton}
+              onClick={() => setCurrentView('about')}
+            >
+              📖 About
+            </button>
+            <button 
+              style={{...navStyles.navButton, marginLeft: '10px'}}
+              onClick={handleLogout}
+            >
+              🚪 Logout
+            </button>
+          </div>
+        </nav>
+        
+        {/* Dashboard Content */}
+        <div style={{ paddingTop: '80px' }}>
+          <Dashboard principal={principal} onComplete={handleComplete} />
+        </div>
+      </>
+    );
+  }
+
+  return <LandingPage onLogin={handleLogin} />;
 };
 
 export default App;

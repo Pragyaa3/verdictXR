@@ -1,32 +1,62 @@
-//frontend/src/api/canister.ts
+// frontend/src/api/canister.ts
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../dfx_generated/court_backend';
-import { createActor } from '../dfx_generated/court_backend/index.js';
 import { Principal } from '@dfinity/principal';
 
-const canisterId = process.env.CANISTER_ID_COURT_BACKEND;
+// ---------- Env / Agent ----------
+const AGENT_HOST =
+  process.env.DFX_NETWORK === 'ic' ? 'https://ic0.app' : 'http://localhost:4943';
+
+const canisterId =
+  process.env.CANISTER_ID_COURT_BACKEND ||
+  process.env.VITE_CANISTER_ID_COURT_BACKEND;
 
 if (!canisterId) {
-  throw new Error("The CANISTER_ID_COURT_BACKEND environment variable is not set. Check your .env file and vite.config.ts");
+  console.warn(
+    'CANISTER_ID_COURT_BACKEND environment variable is not set. Using local development.'
+  );
 }
 
-const agent = new HttpAgent({ host: 'http://localhost:4943' });
+const agent = new HttpAgent({ host: AGENT_HOST });
 
-if (process.env.NODE_ENV === 'development') {
-  agent.fetchRootKey();
+// Fetch root key for local replica
+if (process.env.DFX_NETWORK !== 'ic') {
+  agent.fetchRootKey().catch((err) => {
+    console.warn(
+      'Unable to fetch root key. Check to ensure that your local replica is running'
+    );
+    console.error(err);
+  });
 }
 
-const actor = Actor.createActor(idlFactory, {
-  agent,
-  canisterId,
-});
+// Create the actor (typed as any to avoid "unknown" return types from candid bindings)
+const actor = canisterId
+  ? (Actor.createActor(idlFactory as any, {
+      agent,
+      canisterId,
+    }) as any)
+  : null;
 
+// ---------- Local TS interfaces (frontend shape) ----------
 interface Evidence {
   id: bigint;
   uploader: Principal;
   url: string;
   description: string;
   timestamp: bigint;
+}
+
+interface Message {
+  sender: Principal;
+  role: string;
+  content: string;
+  timestamp: bigint;
+}
+
+interface ParticipantRec {
+  principal: Principal;
+  role: string;
+  joinedAt: bigint;
 }
 
 interface Trial {
@@ -36,156 +66,264 @@ interface Trial {
   defendant: Principal | null;
   observers: Principal[];
   evidence: Evidence[];
-  aiVerdict?: string | null;
-  verdict?: string | null;
-  status?: string;
-  caseDetails?: string;
+  log: Message[];
+  verdict: string | null;
+  aiVerdict: string | null;
+  status: string;
+  caseDetails: string | null;
+  caseTitle?: string | null;
+  participants: ParticipantRec[];
+  createdAt: bigint;
 }
 
-interface TrialRecord {
-  trial: Trial;
-  timestamp: bigint;
-  inviteCode?: string;
-  participants: { principal: Principal; role: string; joinedAt: bigint }[];
-}
+// ---------- Helpers ----------
+/** Safely unwrap Motoko Opt values coming back as [] | [T] */
+const unwrapOpt = <T>(opt: unknown): T | null =>
+  Array.isArray(opt) && opt.length > 0 ? (opt[0] as T) : null;
 
-const trialCache: Map<bigint, TrialRecord> = new Map();
-const inviteCodeMap: Map<string, bigint> = new Map();
-
+// ---------- API wrapper ----------
 export const courtBackend = {
-  // Create a trial
   createTrial: async (creator: Principal, role: string): Promise<bigint> => {
-    const id = BigInt(Math.floor(Math.random() * 1000000));
-    const now = BigInt(Date.now());
-
-    const trial: Trial = {
-      id,
-      judge: role === 'Judge' ? creator : null,  // Use the passed creator
-      plaintiff: role === 'Plaintiff' ? creator : null,
-      defendant: role === 'Defendant' ? creator : null,
-      observers: [],
-      evidence: [],
-      status: 'Active',
-    };
-
-    const record: TrialRecord = {
-      trial,
-      timestamp: now,
-      participants: [{ principal: creator, role, joinedAt: now }],  // Use creator here too
-    };
-
-    trialCache.set(id, record);
-    return id;
-  },
-
-  // Join an existing trial
-  joinTrial: async (trialId: bigint, principalId: Principal, role: string) => {
-    const record = trialCache.get(trialId);
-    if (!record) throw new Error('Trial not found');
-    const now = BigInt(Date.now());
-
-    // Add participant if not already present
-    if (!record.participants.some((p) => p.principal.toText() === principalId.toText())) {
-      record.participants.push({ principal: principalId, role, joinedAt: now });
-
-      // Add to trial roles
-      switch (role) {
-        case 'Judge':
-          record.trial.judge = principalId;
-          break;
-        case 'Plaintiff':
-          record.trial.plaintiff = principalId;
-          break;
-        case 'Defendant':
-          record.trial.defendant = principalId;
-          break;
-        case 'Observer':
-          record.trial.observers.push(principalId);
-          break;
-        default:
-          throw new Error('Invalid role');
-      }
+    if (!actor) throw new Error('Backend actor not initialized. Check canister configuration.');
+    try {
+      const trialId = (await actor.createTrial(creator, role)) as bigint;
+      console.log('✅ Trial created on blockchain:', trialId.toString());
+      return trialId;
+    } catch (error) {
+      console.error('❌ Error creating trial:', error);
+      throw new Error(`Failed to create trial: ${error}`);
     }
-
-    trialCache.set(trialId, record);
   },
 
-  // Get trial info
+  joinTrial: async (
+    trialId: bigint,
+    principalId: Principal,
+    role: string
+  ): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.joinTrial(trialId, principalId, role)) as boolean;
+      console.log('✅ Joined trial:', trialId.toString());
+      return success;
+    } catch (error) {
+      console.error('❌ Error joining trial:', error);
+      throw new Error(`Failed to join trial: ${error}`);
+    }
+  },
+
   getTrial: async (trialId: bigint): Promise<Trial | null> => {
-    const record = trialCache.get(trialId);
-    if (!record) return null;
-    return record.trial;
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const trialOpt = (await actor.getTrial(trialId)) as unknown;
+      return unwrapOpt<Trial>(trialOpt);
+    } catch (error) {
+      console.error('❌ Error getting trial:', error);
+      return null;
+    }
   },
 
-  // Generate invite code for a trial
-  generateInviteCode: async (trialId: bigint): Promise<string> => {
-    const record = trialCache.get(trialId);
-    if (!record) throw new Error('Trial not found');
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    record.inviteCode = code;
-    inviteCodeMap.set(code, trialId);
-    return code;
+  generateInviteCode: async (trialId: bigint): Promise<string | null> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const codeOpt = (await actor.generateInviteCode(trialId)) as unknown;
+      return unwrapOpt<string>(codeOpt);
+    } catch (error) {
+      console.error('❌ Error generating invite code:', error);
+      return null;
+    }
   },
 
-  // Join trial using invite code
-  joinTrialWithCode: async (code: string, principalId: Principal, role: string) => {
-    const trialId = inviteCodeMap.get(code);
-    if (!trialId) return false;
-    await courtBackend.joinTrial(trialId, principalId, role);
-    return true;
+  joinTrialWithCode: async (
+    code: string,
+    principalId: Principal,
+    role: string
+  ): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.joinTrialWithCode(
+        code,
+        principalId,
+        role
+      )) as boolean;
+      console.log('✅ Joined trial with code:', code);
+      return success;
+    } catch (error) {
+      console.error('❌ Error joining with code:', error);
+      return false;
+    }
   },
 
-  // Get trial from invite code
   getTrialFromCode: async (code: string): Promise<Trial | null> => {
-    const trialId = inviteCodeMap.get(code);
-    if (!trialId) return null;
-    return await courtBackend.getTrial(trialId);
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const trialOpt = (await actor.getTrialFromCode(code)) as unknown;
+      return unwrapOpt<Trial>(trialOpt);
+    } catch (error) {
+      console.error('❌ Error getting trial from code:', error);
+      return null;
+    }
   },
 
-  setCaseDetails: async (trialId: bigint, caseDetails: string) => {
-  const record = trialCache.get(trialId);
-  if (!record) throw new Error('Trial not found');
-  record.trial.caseDetails = caseDetails;
-  return true; // ✅ Backend returns Bool
-},
-
-  // Submit evidence
-submitEvidence: async (trialId: bigint, url: string, description: string, uploader: Principal) => {
-  const record = trialCache.get(trialId);
-  if (!record) throw new Error('Trial not found');
-  
-  const evidence = {
-    id: BigInt(record.trial.evidence.length), // Generate sequential ID
-    uploader,
-    url,
-    description,
-    timestamp: BigInt(Date.now()) // Current timestamp
-  };
-  
-  record.trial.evidence.push(evidence);
-},
-
-  // Post chat/message
-  postMessage: async (trialId: bigint, role: string, content: string) => {
-    // Just push to log (Dashboard already handles VR display)
-    const record = trialCache.get(trialId);
-    if (!record) throw new Error('Trial not found');
-    // Optional: Could store chat in record.participants or new field
+  setCaseTitle: async (trialId: bigint, caseTitle: string): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.setCaseTitle(trialId, caseTitle)) as boolean;
+      console.log('✅ Case title set:', caseTitle);
+      return success;
+    } catch (error) {
+      console.error('❌ Error setting case title:', error);
+      return false;
+    }
   },
 
-  // Set AI verdict
-  setAIVerdict: async (trialId: bigint, verdict: string) => {
-    const record = trialCache.get(trialId);
-    if (!record) throw new Error('Trial not found');
-    record.trial.aiVerdict = verdict;
+  setCaseDetails: async (trialId: bigint, caseDetails: string): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.setCaseDetails(trialId, caseDetails)) as boolean;
+      console.log('✅ Case details set');
+      return success;
+    } catch (error) {
+      console.error('❌ Error setting case details:', error);
+      return false;
+    }
+  },
+
+  submitEvidence: async (
+    trialId: bigint,
+    url: string,
+    description: string,
+    uploader: Principal
+  ): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.submitEvidence(
+        trialId,
+        url,
+        description,
+        uploader
+      )) as boolean;
+      console.log('✅ Evidence submitted:', description);
+      return success;
+    } catch (error) {
+      console.error('❌ Error submitting evidence:', error);
+      return false;
+    }
+  },
+
+  postMessage: async (
+    trialId: bigint,
+    role: string,
+    content: string
+  ): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.postMessage(trialId, role, content)) as boolean;
+      console.log('✅ Message posted:', content.substring(0, 50) + '...');
+      return success;
+    } catch (error) {
+      console.error('❌ Error posting message:', error);
+      return false;
+    }
+  },
+
+  setAIVerdict: async (trialId: bigint, verdict: string): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.setAIVerdict(trialId, verdict)) as boolean;
+      console.log('✅ AI verdict set');
+      return success;
+    } catch (error) {
+      console.error('❌ Error setting AI verdict:', error);
+      return false;
+    }
+  },
+
+  setVerdict: async (trialId: bigint, verdict: string): Promise<boolean> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const success = (await actor.setVerdict(trialId, verdict)) as boolean;
+      console.log('✅ Verdict set');
+      return success;
+    } catch (error) {
+      console.error('❌ Error setting verdict:', error);
+      return false;
+    }
+  },
+
+  getTrialsByParticipant: async (participant: Principal): Promise<Trial[]> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const trials = (await actor.getTrialsByParticipant(participant)) as Trial[];
+      return trials;
+    } catch (error) {
+      console.error('❌ Error getting trials by participant:', error);
+      return [];
+    }
+  },
+
+  listTrials: async (): Promise<Trial[]> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const trials = (await actor.listTrials()) as Trial[];
+      return trials;
+    } catch (error) {
+      console.error('❌ Error listing trials:', error);
+      return [];
+    }
+  },
+
+  getTrialStats: async (): Promise<{
+    openTrials: bigint;
+    closedTrials: bigint;
+    totalEvidence: bigint;
+  }> => {
+    if (!actor) throw new Error('Backend actor not initialized.');
+    try {
+      const stats = (await actor.getTrialStats()) as {
+        openTrials: bigint;
+        closedTrials: bigint;
+        totalEvidence: bigint;
+      };
+      return stats;
+    } catch (error) {
+      console.error('❌ Error getting trial stats:', error);
+      return { openTrials: 0n, closedTrials: 0n, totalEvidence: 0n };
+    }
+  },
+
+  healthCheck: async (): Promise<boolean> => {
+    if (!actor) {
+      console.warn('⚠️ Backend actor not initialized');
+      return false;
+    }
+    try {
+      await actor.getTrialStats();
+      console.log('✅ Backend health check passed');
+      return true;
+    } catch (error) {
+      console.error('❌ Backend health check failed:', error);
+      return false;
+    }
   },
 };
 
-// Example usage:
-// await courtBackend.createTrial(principal1, principal2);
-// await courtBackend.submitEvidence(trialId, url, description);
-// await courtBackend.postMessage(trialId, role, content);
-// await courtBackend.setVerdict(trialId, verdict);
-// await courtBackend.setAIVerdict(trialId, aiVerdict);
-// await courtBackend.getTrial(trialId);
-// await courtBackend.listTrials(); 
+// Export the actor for direct use if needed
+export { actor };
+
+// ---------- Debug logs ----------
+console.log('🔧 Canister Configuration:');
+console.log('  - Canister ID:', canisterId || 'NOT SET');
+console.log('  - Network:', process.env.DFX_NETWORK || 'local');
+console.log('  - Agent Host:', AGENT_HOST);
+console.log('  - Actor Initialized:', !!actor);
+
+// Auto health check on startup
+if (actor) {
+  courtBackend.healthCheck().then((healthy) => {
+    if (healthy) {
+      console.log('🎉 VR Legal Simulator backend is ready!');
+    } else {
+      console.warn('⚠️ Backend connection issues detected. Check your dfx local replica.');
+    }
+  });
+}

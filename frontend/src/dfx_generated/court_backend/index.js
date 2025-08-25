@@ -3,40 +3,52 @@ import { Actor, HttpAgent } from "@dfinity/agent";
 // Imports and re-exports candid interface
 import { idlFactory } from './service.did.js';
 export { idlFactory } from './service.did.js';
-// CANISTER_ID is replaced by webpack based on node environment
+
+// Get canister ID from environment variables
 export const canisterId = process.env.CANISTER_ID_COURT_BACKEND;
 
+if (!canisterId) {
+  console.warn(
+    "CANISTER_ID_COURT_BACKEND environment variable is not set. The actor may not work correctly."
+  );
+}
+
 /**
- * @deprecated since dfx 0.11.1
- * Do not import from `.dfx`, instead switch to using `dfx generate` to generate your JS interface.
- * @param {string | import("@dfinity/principal").Principal} canisterId Canister ID of Agent
- * @param {{agentOptions?: import("@dfinity/agent").HttpAgentOptions; actorOptions?: import("@dfinity/agent").ActorConfig} | { agent?: import("@dfinity/agent").Agent; actorOptions?: import("@dfinity/agent").ActorConfig }} [options]
- * @return {import("@dfinity/agent").ActorSubclass<import("./court_backend.did.js")._SERVICE>}
+ * Create an actor for your canister
+ * @param {string | import("@dfinity/principal").Principal} canisterId
+ * @param {{agentOptions?: import("@dfinity/agent").HttpAgentOptions; actorOptions?: import("@dfinity/agent").ActorConfig} | { agent?: import("@dfinity/agent").Agent; actorOptions?: import("@dfinity/agent").ActorConfig }} options
  */
 export const createActor = (canisterId, options = {}) => {
-  console.warn(`Deprecation warning: you are currently importing code from .dfx. Going forward, refactor to use the dfx generate command for JavaScript bindings.
+  // Deprecation warning (keep for now)
+  console.warn(`Deprecation warning: importing from .dfx. Consider running 'dfx generate' to generate JS bindings.
+See https://internetcomputer.org/docs/current/developer-docs/updates/release-notes/`);
 
-See https://internetcomputer.org/docs/current/developer-docs/updates/release-notes/ for migration instructions`);
-  const agent = options.agent || new HttpAgent({ ...options.agentOptions });
-  
-  // Fetch root key for certificate validation during development
+  // Explicit host for local development or mainnet
+  const host =
+    process.env.DFX_NETWORK === "ic" ? "https://ic0.app" : "http://127.0.0.1:4943";
+
+  const agent = options.agent || new HttpAgent({ host, ...options.agentOptions });
+
+  // Fetch root key for local development
   if (process.env.DFX_NETWORK !== "ic") {
-    agent.fetchRootKey().catch(err => {
-      console.warn("Unable to fetch root key. Check to ensure that your local replica is running");
+    agent.fetchRootKey().catch((err) => {
+      console.warn(
+        "Unable to fetch root key. Make sure your local replica is running."
+      );
       console.error(err);
     });
   }
 
-  // Creates an actor with using the candid interface and the HttpAgent
+  // Create the actor with the candid interface
   return Actor.createActor(idlFactory, {
     agent,
     canisterId,
-    ...(options ? options.actorOptions : {}),
+    ...(options.actorOptions || {}),
   });
 };
-  
+
 /**
- * A ready-to-use agent for the court_backend canister
- * @type {import("@dfinity/agent").ActorSubclass<import("./court_backend.did.js")._SERVICE>}
+ * A ready-to-use actor for the court_backend canister
+ * @type {import("@dfinity/agent").ActorSubclass<import("./service.did.js")._SERVICE>}
  */
-export const court_backend = createActor(canisterId);
+export const court_backend = canisterId ? createActor(canisterId) : undefined;
