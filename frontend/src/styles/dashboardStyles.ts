@@ -234,4 +234,35 @@ export const dashboardStyles = {
     borderBottom: "2px solid #8d6e63",
     paddingBottom: "5px",
   } as React.CSSProperties,
+
+  //new
+  debateContainer: {
+  display: "flex",
+  gap: "20px",
+  marginTop: "10px"
+},
+lawyerColumn: {
+  flex: 1,
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px"
+},
+bubble: {
+  padding: "10px 14px",
+  borderRadius: "12px",
+  fontSize: "13px",
+  lineHeight: "1.4",
+  maxWidth: "90%"
+},
+plaintiffBubble: {
+  background: "#dbeafe", // light blue
+  alignSelf: "flex-start",
+  border: "1px solid #2563eb",
+},
+defendantBubble: {
+  background: "#dcfce7", // light green
+  alignSelf: "flex-end",
+  border: "1px solid #16a34a",
+}
+
 };
