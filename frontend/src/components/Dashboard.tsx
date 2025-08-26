@@ -59,20 +59,20 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const [inviteCode, setInviteCode] = useState<string>('');
   const [myInviteCode, setMyInviteCode] = useState<string>('');
   const [joinedTrial, setJoinedTrial] = useState<boolean>(false);
-  
+
   // NEW: Case Management State
   const [caseTitle, setCaseTitle] = useState<string>('');
   const [caseDetails, setCaseDetails] = useState<string>('');
-  
+
   // Evidence State
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [evidenceDesc, setEvidenceDesc] = useState('');
-  
+
   // Chat State
   const [chat, setChat] = useState<string>('');
   const [log, setLog] = useState<string[]>([]);
   const [aiResponse, setAIResponse] = useState<string>('');
-  
+
   // Trial State
   const [currentTrialId, setCurrentTrialId] = useState<bigint | null>(null);
   const [loading, setLoading] = useState<string>('');
@@ -84,6 +84,9 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const [lawyerDebate, setLawyerDebate] = useState<LawyerDebate | null>(null);
   const [selectedLawyer, setSelectedLawyer] = useState<'plaintiff' | 'defendant' | null>(null);
   const [lawyerQuestion, setLawyerQuestion] = useState<string>('');
+  const [lawyerResponses, setLawyerResponses] = useState<
+    { type: 'plaintiff' | 'defendant'; text: string }[]
+  >([]);
 
   // NEW: Show VR and Controls
   const [showVR, setShowVR] = useState<boolean>(false);
@@ -287,7 +290,10 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       const data = await response.json();
 
       if (data.success) {
-        setLog(prev => [...prev, `👔 ${selectedLawyer} lawyer: ${data.consultation.argument}`]);
+        setLawyerResponses(prev => [
+          ...prev,
+          { type: selectedLawyer, text: data.consultation.argument }
+        ]);
         setLawyerQuestion('');
         setSuccess(`${selectedLawyer} lawyer consultation complete!`);
       } else {
@@ -308,25 +314,12 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       const trial = await courtBackend.getTrial(currentTrialId!);
       const trialWithDetails = { ...trial, caseDetails, caseTitle };
 
-      // Quick patch: Convert BigInt to string recursively
-      function stringifyBigInts(obj: any): any {
-        if (typeof obj === 'bigint') return obj.toString();
-        if (Array.isArray(obj)) return obj.map(stringifyBigInts);
-        if (obj && typeof obj === 'object') {
-          const out: any = {};
-          for (const k in obj) out[k] = stringifyBigInts(obj[k]);
-          return out;
-        }
-        return obj;
-      }
-      const safeTrial = stringifyBigInts(trialWithDetails);
-      const safeLawyerDebate = stringifyBigInts(lawyerDebate);
       const response = await fetch('http://localhost:5000/ai-judge-enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trial: safeTrial,
-          lawyerArguments: safeLawyerDebate
+          trial: trialWithDetails,
+          lawyerArguments: lawyerDebate
         }),
       });
 
@@ -382,7 +375,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     if (trialData.judge) participants.push({ role: 'Judge', principal: trialData.judge.toString(), displayName: 'Judge' });
     if (trialData.plaintiff) participants.push({ role: 'Plaintiff', principal: trialData.plaintiff.toString(), displayName: 'Plaintiff' });
     if (trialData.defendant) participants.push({ role: 'Defendant', principal: trialData.defendant.toString(), displayName: 'Defendant' });
-    
+
     trialData.observers.forEach((obs) => {
       participants.push({ role: 'Observer', principal: obs.toString(), displayName: 'Observer' });
     });
@@ -402,7 +395,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     <div style={styles.container}>
       {/* NEW: Enhanced Header */}
       <div style={styles.headerSection}>
-  <h1 style={styles.mainTitle}>⚖️ VerdictXR</h1>
+        <h1 style={styles.mainTitle}>⚖️ VR Legal Simulator</h1>
         <p style={styles.subtitle}>Experience immersive legal education with AI-powered attorneys and judges</p>
       </div>
 
@@ -423,14 +416,14 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
 
         {canProceed && !joinedTrial && (
           <div>
-            <button 
-              style={{...styles.button, ...styles.primaryButton}} 
-              onClick={handleCreateTrial} 
+            <button
+              style={{ ...styles.button, ...styles.primaryButton }}
+              onClick={handleCreateTrial}
               disabled={!!loading}
             >
-              Create New Trial
+              🆕 Create New Trial
             </button>
-            
+
             <div style={{ marginTop: '20px' }}>
               <input
                 style={styles.input}
@@ -440,12 +433,12 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 onChange={e => setTrialIdInput(e.target.value)}
                 disabled={!!loading}
               />
-              <button 
-                style={styles.button} 
-                onClick={handleJoinTrial} 
+              <button
+                style={styles.button}
+                onClick={handleJoinTrial}
                 disabled={!!loading || !trialIdInput}
               >
-                Join by ID
+                🔗 Join by ID
               </button>
             </div>
 
@@ -458,12 +451,12 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 onChange={e => setInviteCode(e.target.value)}
                 disabled={!!loading}
               />
-              <button 
-                style={styles.button} 
-                onClick={handleJoinWithCode} 
+              <button
+                style={styles.button}
+                onClick={handleJoinWithCode}
                 disabled={!!loading || !inviteCode}
               >
-                Join with Code
+                🎫 Join with Code
               </button>
             </div>
           </div>
@@ -492,7 +485,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       {joinedTrial && (
         <div style={styles.card}>
           <h2 style={styles.sectionTitle}>📝 Case Management</h2>
-          
+
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Case Title:</label>
             <input
@@ -503,12 +496,12 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onChange={e => setCaseTitle(e.target.value)}
               disabled={!!loading}
             />
-            <button 
-              style={styles.button} 
+            <button
+              style={styles.button}
               onClick={handleSaveCaseTitle}
               disabled={!!loading || !caseTitle.trim()}
             >
-              Save Title
+              💾 Save Title
             </button>
           </div>
 
@@ -521,12 +514,12 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onChange={e => setCaseDetails(e.target.value)}
               disabled={!!loading}
             />
-            <button 
-              style={styles.button} 
+            <button
+              style={styles.button}
               onClick={handleSaveCaseDetails}
               disabled={!!loading || !String(caseDetails || "").trim()}
             >
-              Save Details
+              💾 Save Details
             </button>
           </div>
         </div>
@@ -535,14 +528,14 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       {/* VR Courtroom Section */}
       {joinedTrial && (
         <div style={styles.vrPanel}>
-          <h2 style={{ color: '#f0f3f0ff', fontSize: '1.5rem', marginBottom: '15px' }}>🥽 VR Courtroom Experience</h2>
-          <button 
-            style={{...styles.button, ...styles.primaryButton}} 
+          <h2 style={{ color: '#4CAF50', fontSize: '1.5rem', marginBottom: '15px' }}>🥽 VR Courtroom Experience</h2>
+          <button
+            style={{ ...styles.button, ...styles.primaryButton }}
             onClick={() => setShowVR(!showVR)}
           >
             {showVR ? '👁️ Hide VR Courtroom' : '🥽 Show VR Courtroom'}
           </button>
-          
+
           {showVR && (
             <div style={{ marginTop: '20px' }}>
               <CourtroomVR participants={participants} evidence={evidence3d} />
@@ -569,12 +562,12 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               disabled={!!loading}
               onKeyPress={e => e.key === 'Enter' && handleSendChat()}
             />
-            <button 
-              style={styles.button} 
+            <button
+              style={styles.button}
               onClick={handleSendChat}
               disabled={!!loading || !chat.trim()}
             >
-              Send
+              📤 Send
             </button>
 
             <h4 style={{ marginTop: '20px', marginBottom: '10px' }}>📎 Submit Evidence</h4>
@@ -594,25 +587,25 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onChange={e => setEvidenceDesc(e.target.value)}
               disabled={!!loading}
             />
-            <button 
+            <button
               style={styles.button}
               onClick={handleUploadEvidence}
               disabled={!!loading || !evidenceUrl || !evidenceDesc}
             >
-              Upload Evidence
+              📎 Upload Evidence
             </button>
           </div>
 
           {/* AI Legal Section */}
           <div style={styles.aiSection}>
             <h3 style={styles.sectionTitle}>🤖 AI Legal Consultation</h3>
-            
+
             <button
-              style={{...styles.button, ...styles.primaryButton}}
+              style={{ ...styles.button, ...styles.primaryButton }}
               onClick={handleStartLawyerDebate}
               disabled={!!loading || !(typeof caseDetails === "string" && caseDetails.trim())}
             >
-              Start Dual Lawyer Analysis
+              ⚖️ Start Dual Lawyer Analysis
             </button>
 
             <div style={{ marginTop: '15px' }}>
@@ -626,7 +619,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 <option value="plaintiff">👔 Plaintiff's Lawyer</option>
                 <option value="defendant">🛡️ Defense Lawyer</option>
               </select>
-              
+
               <input
                 style={styles.input}
                 type="text"
@@ -636,36 +629,78 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 disabled={!!loading}
                 onKeyPress={e => e.key === 'Enter' && handleConsultSingleLawyer()}
               />
-              
+
               <button
                 style={styles.button}
                 onClick={handleConsultSingleLawyer}
                 disabled={!!loading || !selectedLawyer || !lawyerQuestion.trim()}
               >
-                Consult
+                💼 Consult
               </button>
             </div>
 
             <button
-              style={{...styles.button, ...styles.warningButton, marginTop: '15px'}}
+              style={{ ...styles.button, ...styles.warningButton, marginTop: '15px' }}
               onClick={handleEnhancedAIJudge}
               disabled={!!loading}
             >
-              Request Final AI Verdict
+              👨‍⚖️ Request Final AI Verdict
             </button>
           </div>
         </div>
       )}
+
+
+     {/* Lawyer Consultations */}
+{lawyerResponses.length > 0 && (
+  <div style={styles.card}>
+    <h3 style={styles.sectionTitle}>💼 Lawyer Consultations</h3>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      
+      {/* Plaintiff Column */}
+      <div style={{ 
+        background: '#f9f9f9', 
+        padding: '10px', 
+        borderRadius: '8px',
+        maxHeight: '250px',    // 👈 control height
+        overflowY: 'auto'      // 👈 scroll inside
+      }}>
+        <h4 style={{ color: '#007bff' }}>👔 Plaintiff Lawyer</h4>
+        {lawyerResponses
+          .filter(r => r.type === 'plaintiff')
+          .map((r, i) => (
+            <p key={i} style={{ fontSize: '13px', marginBottom: '8px' }}>{r.text}</p>
+          ))}
+      </div>
+
+      {/* Defendant Column */}
+      <div style={{ 
+        background: '#f1f1f1', 
+        padding: '10px', 
+        borderRadius: '8px',
+        maxHeight: '250px',    // 👈 same here
+        overflowY: 'auto'
+      }}>
+        <h4 style={{ color: '#28a745' }}>🛡️ Defense Lawyer</h4>
+        {lawyerResponses
+          .filter(r => r.type === 'defendant')
+          .map((r, i) => (
+            <p key={i} style={{ fontSize: '13px', marginBottom: '8px' }}>{r.text}</p>
+          ))}
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Dual Lawyer Debate Display */}
       {lawyerDebate && (
         <div style={styles.lawyerDebateContainer}>
           {/* Plaintiff's Lawyer */}
           <div style={{ ...styles.lawyerCard, ...styles.plaintiffCard }}>
-            <div style={{ 
-              fontSize: '18px', 
-              fontWeight: '700', 
-              marginBottom: '15px', 
+            <div style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              marginBottom: '15px',
               textAlign: 'center' as const,
               background: '#1976d2',
               color: '#fff',
@@ -674,9 +709,9 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
             }}>
               ⚖️ Plaintiff's Attorney
             </div>
-            <div style={{ 
-              fontSize: '14px', 
-              lineHeight: '1.6', 
+            <div style={{
+              fontSize: '14px',
+              lineHeight: '1.6',
               whiteSpace: 'pre-line' as const,
               marginBottom: '15px'
             }}>
@@ -702,10 +737,10 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
 
           {/* Defendant's Lawyer */}
           <div style={{ ...styles.lawyerCard, ...styles.defendantCard }}>
-            <div style={{ 
-              fontSize: '18px', 
-              fontWeight: '700', 
-              marginBottom: '15px', 
+            <div style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              marginBottom: '15px',
               textAlign: 'center' as const,
               background: '#c2185b',
               color: '#fff',
@@ -714,9 +749,9 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
             }}>
               🛡️ Defense Attorney
             </div>
-            <div style={{ 
-              fontSize: '14px', 
-              lineHeight: '1.6', 
+            <div style={{
+              fontSize: '14px',
+              lineHeight: '1.6',
               whiteSpace: 'pre-line' as const,
               marginBottom: '15px'
             }}>
@@ -764,6 +799,36 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
         </div>
       )}
 
+      {/* AI Lawyer Debate */}
+      {joinedTrial && log.some(entry => entry.includes("AI_Plaintiff") || entry.includes("AI_Defendant")) && (
+        <div style={styles.card}>
+          <h3 style={styles.sectionTitle}>⚖️ AI Lawyer Debate</h3>
+          <div style={styles.debateContainer}>
+
+            {/* Plaintiff Column */}
+            <div style={styles.lawyerColumn}>
+              <h4 style={{ color: "#2563eb" }}>📢 Plaintiff Lawyer</h4>
+              {log.filter(entry => entry.includes("AI_Plaintiff")).map((msg, i) => (
+                <div key={i} style={{ ...styles.bubble, ...styles.plaintiffBubble }}>
+                  {msg.replace("AI_Plaintiff: ", "")}
+                </div>
+              ))}
+            </div>
+
+            {/* Defendant Column */}
+            <div style={styles.lawyerColumn}>
+              <h4 style={{ color: "#16a34a" }}>🛡️ Defendant Lawyer</h4>
+              {log.filter(entry => entry.includes("AI_Defendant")).map((msg, i) => (
+                <div key={i} style={{ ...styles.bubble, ...styles.defendantBubble }}>
+                  {msg.replace("AI_Defendant: ", "")}
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* AI Verdict Display */}
       {aiResponse && (
         <div style={styles.card}>
@@ -796,7 +861,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
           ⏳ {loading}
         </div>
       )}
-      
+
       {error && <div style={styles.error}>{error}</div>}
       {success && <div style={styles.success}>{success}</div>}
     </div>
