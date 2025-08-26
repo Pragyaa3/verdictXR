@@ -308,12 +308,25 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       const trial = await courtBackend.getTrial(currentTrialId!);
       const trialWithDetails = { ...trial, caseDetails, caseTitle };
 
+      // Quick patch: Convert BigInt to string recursively
+      function stringifyBigInts(obj: any): any {
+        if (typeof obj === 'bigint') return obj.toString();
+        if (Array.isArray(obj)) return obj.map(stringifyBigInts);
+        if (obj && typeof obj === 'object') {
+          const out: any = {};
+          for (const k in obj) out[k] = stringifyBigInts(obj[k]);
+          return out;
+        }
+        return obj;
+      }
+      const safeTrial = stringifyBigInts(trialWithDetails);
+      const safeLawyerDebate = stringifyBigInts(lawyerDebate);
       const response = await fetch('http://localhost:5000/ai-judge-enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trial: trialWithDetails,
-          lawyerArguments: lawyerDebate
+          trial: safeTrial,
+          lawyerArguments: safeLawyerDebate
         }),
       });
 
@@ -389,7 +402,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     <div style={styles.container}>
       {/* NEW: Enhanced Header */}
       <div style={styles.headerSection}>
-        <h1 style={styles.mainTitle}>⚖️ VR Legal Simulator</h1>
+  <h1 style={styles.mainTitle}>⚖️ VerdictXR</h1>
         <p style={styles.subtitle}>Experience immersive legal education with AI-powered attorneys and judges</p>
       </div>
 
@@ -415,7 +428,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onClick={handleCreateTrial} 
               disabled={!!loading}
             >
-              🆕 Create New Trial
+              Create New Trial
             </button>
             
             <div style={{ marginTop: '20px' }}>
@@ -432,7 +445,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 onClick={handleJoinTrial} 
                 disabled={!!loading || !trialIdInput}
               >
-                🔗 Join by ID
+                Join by ID
               </button>
             </div>
 
@@ -450,7 +463,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 onClick={handleJoinWithCode} 
                 disabled={!!loading || !inviteCode}
               >
-                🎫 Join with Code
+                Join with Code
               </button>
             </div>
           </div>
@@ -495,7 +508,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onClick={handleSaveCaseTitle}
               disabled={!!loading || !caseTitle.trim()}
             >
-              💾 Save Title
+              Save Title
             </button>
           </div>
 
@@ -513,7 +526,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onClick={handleSaveCaseDetails}
               disabled={!!loading || !String(caseDetails || "").trim()}
             >
-              💾 Save Details
+              Save Details
             </button>
           </div>
         </div>
@@ -522,7 +535,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       {/* VR Courtroom Section */}
       {joinedTrial && (
         <div style={styles.vrPanel}>
-          <h2 style={{ color: '#4CAF50', fontSize: '1.5rem', marginBottom: '15px' }}>🥽 VR Courtroom Experience</h2>
+          <h2 style={{ color: '#f0f3f0ff', fontSize: '1.5rem', marginBottom: '15px' }}>🥽 VR Courtroom Experience</h2>
           <button 
             style={{...styles.button, ...styles.primaryButton}} 
             onClick={() => setShowVR(!showVR)}
@@ -561,7 +574,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onClick={handleSendChat}
               disabled={!!loading || !chat.trim()}
             >
-              📤 Send
+              Send
             </button>
 
             <h4 style={{ marginTop: '20px', marginBottom: '10px' }}>📎 Submit Evidence</h4>
@@ -586,7 +599,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onClick={handleUploadEvidence}
               disabled={!!loading || !evidenceUrl || !evidenceDesc}
             >
-              📎 Upload Evidence
+              Upload Evidence
             </button>
           </div>
 
@@ -599,7 +612,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onClick={handleStartLawyerDebate}
               disabled={!!loading || !(typeof caseDetails === "string" && caseDetails.trim())}
             >
-              ⚖️ Start Dual Lawyer Analysis
+              Start Dual Lawyer Analysis
             </button>
 
             <div style={{ marginTop: '15px' }}>
@@ -629,7 +642,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 onClick={handleConsultSingleLawyer}
                 disabled={!!loading || !selectedLawyer || !lawyerQuestion.trim()}
               >
-                💼 Consult
+                Consult
               </button>
             </div>
 
@@ -638,7 +651,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
               onClick={handleEnhancedAIJudge}
               disabled={!!loading}
             >
-              👨‍⚖️ Request Final AI Verdict
+              Request Final AI Verdict
             </button>
           </div>
         </div>
