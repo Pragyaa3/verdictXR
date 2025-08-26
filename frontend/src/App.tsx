@@ -8,7 +8,7 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
   const styles = {
     landingContainer: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+      background: 'linear-gradient(135deg, #f5efe6 0%, #fffbe6 100%)',
       display: 'flex',
       flexDirection: 'column' as const,
       fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
@@ -31,10 +31,13 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
     },
 
     logo: {
+      display: 'flex',
+      alignItems: 'center',
       fontSize: '2rem',
       fontWeight: '700',
-      color: '#fff',
-      textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+      color: '#6d4c41',
+      textShadow: '0 2px 8px #fffbe6',
+      gap: '12px',
     },
 
     loginButton: {
@@ -61,17 +64,15 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
 
     heroContent: {
       maxWidth: '800px',
-      color: '#fff',
+      color: '#6d4c41',
     },
 
     heroTitle: {
       fontSize: '3.5rem',
       fontWeight: '700',
       marginBottom: '20px',
-      textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-      background: 'linear-gradient(45deg, #FFD700, #FFA500, #FF6B6B)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
+      color: '#bfa14a',
+      textShadow: '0 2px 8px #fffbe6',
     },
 
     heroSubtitle: {
@@ -89,12 +90,13 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
     },
 
     featureCard: {
-      background: 'rgba(255,255,255,0.1)',
-      backdropFilter: 'blur(10px)',
+      background: '#6d4c41',
+      color: '#fff',
       borderRadius: '20px',
       padding: '30px',
-      border: '1px solid rgba(255,255,255,0.2)',
+      border: '2px solid #bfa14a',
       textAlign: 'center' as const,
+      boxShadow: '0 4px 24px rgba(191,161,74,0.10)',
     },
 
     featureIcon: {
@@ -154,7 +156,7 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
 
     footer: {
       background: 'rgba(0,0,0,0.2)',
-      color: '#fff',
+      color: '#bfa14a',
       textAlign: 'center' as const,
       padding: '30px 20px',
       fontSize: '0.9rem',
@@ -167,7 +169,10 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
       {/* Header */}
       <header style={styles.header}>
         <nav style={styles.nav}>
-          <div style={styles.logo}>⚖️ VR Legal Simulator</div>
+      <div style={styles.logo}>
+  <img src={'/src/assets/logo.jpeg'} alt="VerdictXR Logo" style={{ height: 38, width: 38, borderRadius: '50%', objectFit: 'cover', marginRight: 8 }} />
+        VerdictXR
+      </div>
           <button 
             style={styles.loginButton}
             onClick={onLogin}
@@ -183,10 +188,10 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
       <section style={styles.hero}>
         <div style={styles.heroContent}>
           <h1 style={styles.heroTitle}>
-            Experience Legal Education in Virtual Reality
+            Welcome to VerdictXR
           </h1>
           <p style={styles.heroSubtitle}>
-            Immersive courtroom simulations with AI-powered lawyers and judges. 
+            Immersive courtroom simulations with AI-powered lawyers and judges.<br />
             Learn law through interactive trials and get both sides of every legal argument.
           </p>
 
@@ -245,9 +250,9 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
 
       {/* CTA Section */}
       <section style={styles.ctaSection}>
-        <h2 style={styles.ctaTitle}>Ready to Learn Law Through Experience?</h2>
-        <p style={styles.ctaDesc}>
-          Join the future of legal education. Create trials, consult AI lawyers, 
+        <h2 style={{ ...styles.ctaTitle, color: "#6d4c41" }}>Ready to Learn Law Through Experience?</h2>
+        <p style={{ ...styles.ctaDesc, color: "#bfa14a" }}>
+          Join the future of legal education. Create trials, consult AI lawyers,
           and get comprehensive legal analysis in an immersive VR environment.
         </p>
         <button 
@@ -262,13 +267,13 @@ const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
             e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
           }}
         >
-          🚀 Start Your Legal Journey
+          Start Your Legal Journey
         </button>
       </section>
 
       {/* Footer */}
       <footer style={styles.footer}>
-        <p>© 2024 VR Legal Simulator | Built on Internet Computer Protocol | Educational Use Only</p>
+  <p>© 2024 VerdictXR | Built on Internet Computer Protocol | Educational Use Only</p>
       </footer>
     </div>
   );
@@ -304,22 +309,21 @@ const AboutPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       fontWeight: '700',
     },
 
-    backButton: {
-      background: 'linear-gradient(45deg, #3498db, #2980b9)',
+    ctaButton: {
+      background: '#6d4c41',
       color: '#fff',
       border: 'none',
-      borderRadius: '20px',
-      padding: '10px 25px',
-      fontSize: '14px',
-      fontWeight: '600',
+      borderRadius: '30px',
+      padding: '18px 40px',
+      fontSize: '18px',
+      fontWeight: '700',
       cursor: 'pointer',
+      boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      textTransform: 'uppercase',
+      letterSpacing: '1px',
     },
-
-    content: {
-      maxWidth: '1000px',
-      margin: '0 auto',
-      padding: '60px 20px',
-    },
+  // ...existing code...
 
     title: {
       fontSize: '3rem',
@@ -533,7 +537,7 @@ const App: React.FC = () => {
       top: 0,
       left: 0,
       right: 0,
-      background: 'rgba(0,0,0,0.9)',
+      background: '#c9aa4eb0',
       backdropFilter: 'blur(10px)',
       padding: '15px 20px',
       zIndex: 1000,
@@ -544,7 +548,7 @@ const App: React.FC = () => {
     },
     
     navButton: {
-      background: 'linear-gradient(45deg, #f44336, #d32f2f)',
+      background: 'linear-gradient(45deg, #745c04b2, #745c04b2)',
       color: '#fff',
       border: 'none',
       borderRadius: '20px',
@@ -564,8 +568,8 @@ const App: React.FC = () => {
       <>
         {/* Dashboard Navigation */}
         <nav style={navStyles.dashboardNav}>
-          <div style={{ fontSize: '18px', fontWeight: '600' }}>
-            ⚖️ VR Legal Simulator Dashboard
+          <div style={{ fontSize: '18px', fontWeight: '600'}}>
+            ⚖️ VerdictXR Dashboard
           </div>
           <div>
             <button 
