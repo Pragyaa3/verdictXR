@@ -227,6 +227,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   };
 
   const handleStartLawyerDebate = async () => {
+    const caseDetailsText = typeof caseDetails === 'string' ? caseDetails : '';
     if (!caseDetails.trim()) {
       setError('Please provide case details first');
       return;
@@ -242,7 +243,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          caseDetails,
+          caseDetails: caseDetailsText,
           evidence: evidenceText,
           currentArguments: lawyerDebate
         }),
@@ -281,7 +282,7 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lawyerType: selectedLawyer,
-          caseDetails,
+          caseDetails: String(caseDetails), // use caseDetails, not caseDetailsText
           evidence: evidenceText,
           question: lawyerQuestion
         }),
@@ -312,14 +313,30 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
 
     try {
       const trial = await courtBackend.getTrial(currentTrialId!);
+      const caseDetailsText = typeof caseDetails === 'string' ? caseDetails : '';
+      const caseTitleText = typeof caseTitle === 'string' ? caseTitle : '';
       const trialWithDetails = { ...trial, caseDetails, caseTitle };
 
+      // Utility: Recursively convert BigInt values to strings
+      function stringifyBigInts(obj: any): any {
+        if (typeof obj === 'bigint') return obj.toString();
+        if (Array.isArray(obj)) return obj.map(stringifyBigInts);
+        if (obj && typeof obj === 'object') {
+          const out: any = {};
+          for (const k in obj) out[k] = stringifyBigInts(obj[k]);
+          return out;
+        }
+        return obj;
+      }
+
+      const safeTrial = stringifyBigInts(trialWithDetails);
+      const safeLawyerDebate = stringifyBigInts(lawyerDebate);
       const response = await fetch('http://localhost:5000/ai-judge-enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trial: trialWithDetails,
-          lawyerArguments: lawyerDebate
+          trial: safeTrial,
+          lawyerArguments: safeLawyerDebate
         }),
       });
 
