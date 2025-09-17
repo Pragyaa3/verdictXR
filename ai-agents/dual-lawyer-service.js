@@ -1,4 +1,4 @@
-// ai-agents/enhanced-dual-lawyer-service.js - ENHANCED VERSION
+// ai-agents/dual-lawyer-service.js 
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
