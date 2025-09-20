@@ -1,1 +1,0 @@
-// Copy the full contents of newCourtfrontend/controls.js here

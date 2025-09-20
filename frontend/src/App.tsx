@@ -2,11 +2,253 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useInternetIdentity } from './hooks/useAuth';
 import Dashboard from './components/Dashboard';
+import { motion } from 'framer-motion';
 
-import CourtroomVRFullPage from './components/CourtroomVRFullPage';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+// Animated Components for Motion Images
+const AnimatedOrbitingCircle = () => (
+  <div style={{
+    width: '200px',
+    height: '200px',
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }}>
+    <div style={{
+      width: '60px',
+      height: '60px',
+      background: '#fff',
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '24px',
+      zIndex: 2
+    }}>👤</div>
+    <div style={{
+      position: 'absolute',
+      width: '120px',
+      height: '120px',
+      border: '2px dashed rgba(79, 70, 229, 0.6)',
+      borderRadius: '50%',
+      animation: 'orbit 6s linear infinite'
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '-6px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '12px',
+        height: '12px',
+        background: '#4F46E5',
+        borderRadius: '50%',
+        animation: 'orbitDot 6s linear infinite'
+      }}></div>
+    </div>
+  </div>
+);
 
-const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+const AnimatedBlockchainNetwork = () => (
+  <div style={{
+    width: '200px',
+    height: '200px',
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }}>
+    <div style={{
+      width: '80px',
+      height: '80px',
+      background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+      borderRadius: '12px',
+      position: 'relative',
+      zIndex: 2
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '40px',
+        height: '40px',
+        border: '2px solid rgba(255,255,255,0.8)',
+        borderRadius: '4px'
+      }}></div>
+    </div>
+    {/* Network lines */}
+    <div style={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '160px',
+      height: '160px',
+      borderRadius: '50%'
+    }}>
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '2px',
+          height: '80px',
+          background: 'linear-gradient(to bottom, #4F46E5, transparent)',
+          transform: `translate(-50%, -50%) rotate(${i * 90}deg)`,
+          transformOrigin: 'center bottom',
+          animation: `pulse 2s ease-in-out infinite ${i * 0.2}s`
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '0',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '8px',
+            height: '8px',
+            background: '#4F46E5',
+            borderRadius: '50%',
+            animation: `glow 2s ease-in-out infinite ${i * 0.3}s`
+          }}></div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const AnimatedGeometricPattern = () => (
+  <div style={{
+    width: '200px',
+    height: '200px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
+  }}>
+    <div style={{
+      width: '120px',
+      height: '120px',
+      position: 'relative'
+    }}>
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '60px',
+          height: '60px',
+          border: '2px solid rgba(79, 70, 229, 0.6)',
+          borderRadius: '50%',
+          transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
+          animation: `rotate 8s linear infinite ${i * 0.5}s`
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '-3px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '6px',
+            height: '6px',
+            background: '#4F46E5',
+            borderRadius: '50%'
+          }}></div>
+        </div>
+      ))}
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '20px',
+        height: '20px',
+        background: '#7C3AED',
+        borderRadius: '50%',
+        animation: 'pulse 2s ease-in-out infinite'
+      }}></div>
+    </div>
+  </div>
+);
+
+const AnimatedNetworkNodes = () => (
+  <div style={{
+    width: '200px',
+    height: '200px',
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }}>
+    <svg width="200" height="200" style={{ position: 'absolute' }}>
+      {/* Grid lines */}
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(79, 70, 229, 0.3)" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width="200" height="200" fill="url(#grid)" />
+
+      {/* Network connections */}
+      <g>
+        <line x1="50" y1="50" x2="150" y2="50" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
+          <animate attributeName="stroke-opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite" />
+        </line>
+        <line x1="50" y1="150" x2="150" y2="150" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
+          <animate attributeName="stroke-opacity" values="1;0.3;1" dur="3s" repeatCount="indefinite" />
+        </line>
+        <line x1="50" y1="50" x2="50" y2="150" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
+          <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+        </line>
+        <line x1="150" y1="50" x2="150" y2="150" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
+          <animate attributeName="stroke-opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
+        </line>
+      </g>
+
+      {/* Nodes */}
+      <circle cx="50" cy="50" r="6" fill="#4F46E5">
+        <animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="150" cy="50" r="6" fill="#7C3AED">
+        <animate attributeName="r" values="8;4;8" dur="2s" repeatCount="indefinite" begin="0.5s" />
+      </circle>
+      <circle cx="50" cy="150" r="6" fill="#4F46E5">
+        <animate attributeName="r" values="6;10;6" dur="2.5s" repeatCount="indefinite" begin="1s" />
+      </circle>
+      <circle cx="150" cy="150" r="6" fill="#7C3AED">
+        <animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite" begin="1.5s" />
+      </circle>
+      <circle cx="100" cy="100" r="8" fill="#8B5CF6">
+        <animate attributeName="r" values="6;12;6" dur="3s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  </div>
+);
+
+
+// Enhanced Landing Page Component with exact Inno replication
+interface LandingPageProps {
+  onLogin: () => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
+  const [scrollY, setScrollY] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({
+        x: (e.clientX - window.innerWidth / 2) / 20,
+        y: (e.clientY - window.innerHeight / 2) / 20
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   const styles = {
     landingContainer: {
       minHeight: '100vh',
@@ -1551,14 +1793,11 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
 };
 
 // Main App Component
-
-const AppContent: React.FC = () => {
+const App = () => {
   const { principal, isAuthenticated, login, logout } = useInternetIdentity();
-  const [selectedRole, setSelectedRole] = useState<string>('');
-  const [currentTrialId, setCurrentTrialId] = useState<bigint | null>(null);
-  const navigate = useNavigate();
-
-
+  const [currentView, setCurrentView] = useState('landing');
+  const [selectedRole, setSelectedRole] = useState('');
+  const [currentTrialId, setCurrentTrialId] = useState(null);
 
   const handleComplete = (role, trialId) => {
     setSelectedRole(role);
@@ -1567,7 +1806,7 @@ const AppContent: React.FC = () => {
 
   const handleLogin = () => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      setCurrentView('dashboard');
     } else {
       login();
     }
@@ -1575,10 +1814,16 @@ const AppContent: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    setCurrentView('landing');
     setSelectedRole('');
     setCurrentTrialId(null);
   };
+
+  useEffect(() => {
+    if (isAuthenticated && currentView === 'landing') {
+      setCurrentView('dashboard');
+    }
+  }, [isAuthenticated, currentView]);
 
   const navStyles = {
     dashboardNav: {
@@ -1610,47 +1855,53 @@ const AppContent: React.FC = () => {
     }
   };
 
+  if (currentView === 'about') {
+    return <AboutPage onBack={() => setCurrentView('landing')} />;
+  }
 
-  return (
-    <Routes>
-      <Route path="/" element={<LandingPage onLogin={handleLogin} />} />
-      <Route path="/about" element={<AboutPage onBack={() => navigate('/')} />} />
-      <Route path="/dashboard" element={isAuthenticated && principal ? (
-        <>
-          <nav style={navStyles.dashboardNav}>
-            <div style={{ fontSize: '18px', fontWeight: '600'}}>
-              ⚖️ VerdictXR Dashboard
-            </div>
-            <div>
-              <button 
-                style={navStyles.navButton}
-                onClick={() => navigate('/about')}
-              >
-                📖 About
-              </button>
-              <button 
-                style={{...navStyles.navButton, marginLeft: '10px'}}
-                onClick={handleLogout}
-              >
-                🚪 Logout
-              </button>
-            </div>
-          </nav>
-          <div style={{ paddingTop: '80px' }}>
-            <Dashboard principal={principal} onComplete={handleComplete} />
+  if (currentView === 'dashboard' && isAuthenticated && principal) {
+    return (
+      <>
+        <nav style={navStyles.dashboardNav}>
+          <div style={{ fontSize: '16px', fontWeight: '600' }}>
+            VerdictXR Dashboard
           </div>
-        </>
-      ) : <LandingPage onLogin={handleLogin} />} />
-      <Route path="/vr-courtroom" element={<CourtroomVRFullPage />} />
-    </Routes>
-  );
+          <div>
+            <button
+              style={navStyles.navButton}
+              onClick={() => setCurrentView('about')}
+              onMouseEnter={e => {
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              Platform Info
+            </button>
+            <button
+              style={{ ...navStyles.navButton, marginLeft: '8px' }}
+              onClick={handleLogout}
+              onMouseEnter={e => {
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              Disconnect
+            </button>
+          </div>
+        </nav>
 
+        <div style={{ paddingTop: '60px', background: '#000000', minHeight: '100vh' }}>
+          <Dashboard principal={principal} onComplete={handleComplete} />
+        </div>
+      </>
+    );
+  }
+
+  return <LandingPage onLogin={handleLogin} />;
 };
-
-const App: React.FC = () => (
-  <Router>
-    <AppContent />
-  </Router>
-);
 
 export default App;
