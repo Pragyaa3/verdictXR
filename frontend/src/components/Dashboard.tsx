@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { courtBackend } from '../api/canister';
 import { Principal } from '@dfinity/principal';
 import CourtroomVR from './CourtroomVR';
-import { useNavigate } from 'react-router-dom';
 import { Participant, Evidence3D } from '../three/CourtroomScene';
 import { dashboardStyles as styles } from '../styles/dashboardStyles';
 
@@ -55,7 +54,6 @@ const roles = [
 ];
 
 const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
-  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [trialIdInput, setTrialIdInput] = useState<string>('');
   const [inviteCode, setInviteCode] = useState<string>('');
@@ -545,16 +543,24 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       )}
 
       {/* VR Courtroom Section */}
-
       {joinedTrial && (
         <div style={styles.vrPanel}>
           <h2 style={{ color: '#4CAF50', fontSize: '1.5rem', marginBottom: '15px' }}>🥽 VR Courtroom Experience</h2>
           <button
-            style={{ background: '#6d4c41', color: '#fff', border: 'none', borderRadius: '16px', padding: '16px 32px', fontSize: '1.2rem', fontWeight: '600', marginBottom: '20px', cursor: 'pointer', boxShadow: '0 2px 8px #bfa14a' }}
-            onClick={() => navigate('/vr-courtroom')}
+            style={{ ...styles.button, ...styles.primaryButton }}
+            onClick={() => setShowVR(!showVR)}
           >
-            🥽 Enter Full VR Courtroom
+            {showVR ? '👁️ Hide VR Courtroom' : '🥽 Show VR Courtroom'}
           </button>
+
+          {showVR && (
+            <div style={{ marginTop: '20px' }}>
+              <CourtroomVR participants={participants} evidence={evidence3d} />
+              <p style={{ color: '#fff', textAlign: 'center', marginTop: '10px', fontSize: '14px' }}>
+                💡 Click on avatars and evidence in the courtroom for more information
+              </p>
+            </div>
+          )}
         </div>
       )}
 

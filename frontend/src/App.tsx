@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import { useInternetIdentity } from './hooks/useAuth';
 import Dashboard from './components/Dashboard';
-import CourtroomVRFullPage from './components/CourtroomVRFullPage';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 
 // NEW: Enhanced Landing Page Component
 const LandingPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
@@ -499,11 +497,11 @@ const AboutPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 };
 
 // Main App Component
-const AppContent: React.FC = () => {
+const App: React.FC = () => {
   const { principal, isAuthenticated, login, logout } = useInternetIdentity();
+  const [currentView, setCurrentView] = useState<'landing' | 'about' | 'dashboard'>('landing');
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [currentTrialId, setCurrentTrialId] = useState<bigint | null>(null);
-  const navigate = useNavigate();
 
   const handleComplete = (role: string, trialId: bigint) => {
     setSelectedRole(role);
@@ -512,7 +510,7 @@ const AppContent: React.FC = () => {
 
   const handleLogin = () => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      setCurrentView('dashboard');
     } else {
       login();
     }
@@ -520,11 +518,17 @@ const AppContent: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    setCurrentView('landing');
     setSelectedRole('');
     setCurrentTrialId(null);
   };
 
+  // Redirect to dashboard after successful login
+  React.useEffect(() => {
+    if (isAuthenticated && currentView === 'landing') {
+      setCurrentView('dashboard');
+    }
+  }, [isAuthenticated, currentView]);
 
   // Navigation styles
   const navStyles = {
@@ -555,45 +559,43 @@ const AppContent: React.FC = () => {
     }
   };
 
-  return (
-    <Routes>
-      <Route path="/" element={<LandingPage onLogin={handleLogin} />} />
-      <Route path="/about" element={<AboutPage onBack={() => navigate('/')} />} />
-      <Route path="/dashboard" element={isAuthenticated && principal ? (
-        <>
-          <nav style={navStyles.dashboardNav}>
-            <div style={{ fontSize: '18px', fontWeight: '600'}}>
-              ⚖️ VerdictXR Dashboard
-            </div>
-            <div>
-              <button 
-                style={navStyles.navButton}
-                onClick={() => navigate('/about')}
-              >
-                📖 About
-              </button>
-              <button 
-                style={{...navStyles.navButton, marginLeft: '10px'}}
-                onClick={handleLogout}
-              >
-                🚪 Logout
-              </button>
-            </div>
-          </nav>
-          <div style={{ paddingTop: '80px' }}>
-            <Dashboard principal={principal} onComplete={handleComplete} />
-          </div>
-        </>
-      ) : <LandingPage onLogin={handleLogin} />} />
-      <Route path="/vr-courtroom" element={<CourtroomVRFullPage />} />
-    </Routes>
-  );
-};
+  if (currentView === 'about') {
+    return <AboutPage onBack={() => setCurrentView('landing')} />;
+  }
 
-const App: React.FC = () => (
-  <Router>
-    <AppContent />
-  </Router>
-);
+  if (currentView === 'dashboard' && isAuthenticated && principal) {
+    return (
+      <>
+        {/* Dashboard Navigation */}
+        <nav style={navStyles.dashboardNav}>
+          <div style={{ fontSize: '18px', fontWeight: '600'}}>
+            ⚖️ VerdictXR Dashboard
+          </div>
+          <div>
+            <button 
+              style={navStyles.navButton}
+              onClick={() => setCurrentView('about')}
+            >
+              📖 About
+            </button>
+            <button 
+              style={{...navStyles.navButton, marginLeft: '10px'}}
+              onClick={handleLogout}
+            >
+              🚪 Logout
+            </button>
+          </div>
+        </nav>
+        
+        {/* Dashboard Content */}
+        <div style={{ paddingTop: '80px' }}>
+          <Dashboard principal={principal} onComplete={handleComplete} />
+        </div>
+      </>
+    );
+  }
+
+  return <LandingPage onLogin={handleLogin} />;
+};
 
 export default App;
