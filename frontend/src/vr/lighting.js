@@ -1,0 +1,1 @@
+// Copy the full contents of newCourtfrontend/lighting.js here

@@ -8,7 +8,7 @@ export const dashboardStyles = {
   } as React.CSSProperties,
 
   headerSection: {
-    textAlign: "center",
+    textAlign: "center" as const,
     marginBottom: "30px",
     background: "linear-gradient(135deg, #fff 0%, #fdfaf6 100%)",
     borderRadius: "18px",
@@ -241,12 +241,12 @@ export const dashboardStyles = {
   gap: "20px",
   marginTop: "10px"
 },
-lawyerColumn: {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px"
-},
+  lawyerColumn: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "8px"
+  } as React.CSSProperties,
 bubble: {
   padding: "10px 14px",
   borderRadius: "12px",
