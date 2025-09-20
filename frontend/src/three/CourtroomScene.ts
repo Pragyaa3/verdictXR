@@ -1,7 +1,9 @@
 //frontend/src/three/CourtroomScene.ts
 import * as THREE from 'three';
-import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
-import ReactDOM from 'react-dom';
+import { VRButton } from 'three/examples/jsm/webxr/VRButton';
+import { Characters } from './Characters';
+import { CourtroomGeometry } from './CourtroomGeometry';
+import { CourtroomControls } from './CourtroomControls';
 
 function createChair(x: number, y: number, z: number, color = 0x444444) {
   const group = new THREE.Group();

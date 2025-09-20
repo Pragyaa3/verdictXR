@@ -2,225 +2,39 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useInternetIdentity } from './hooks/useAuth';
 import Dashboard from './components/Dashboard';
+import CourtroomVRFullPage from './components/CourtroomVRFullPage';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-// Animated Components for Motion Images
+// ...existing code for animated components...
+
+const AnimatedGeometricPattern = () => (
+  <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#7C3AED', opacity: 0.7 }}></div>
+  </div>
+);
+
 const AnimatedOrbitingCircle = () => (
-  <div style={{
-    width: '200px',
-    height: '200px',
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }}>
-    <div style={{
-      width: '60px',
-      height: '60px',
-      background: '#fff',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '24px',
-      zIndex: 2
-    }}>👤</div>
-    <div style={{
-      position: 'absolute',
-      width: '120px',
-      height: '120px',
-      border: '2px dashed rgba(79, 70, 229, 0.6)',
-      borderRadius: '50%',
-      animation: 'orbit 6s linear infinite'
-    }}>
-      <div style={{
-        position: 'absolute',
-        top: '-6px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '12px',
-        height: '12px',
-        background: '#4F46E5',
-        borderRadius: '50%',
-        animation: 'orbitDot 6s linear infinite'
-      }}></div>
-    </div>
+  <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#4F46E5', opacity: 0.8 }}></div>
   </div>
 );
 
 const AnimatedBlockchainNetwork = () => (
-  <div style={{
-    width: '200px',
-    height: '200px',
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }}>
-    <div style={{
-      width: '80px',
-      height: '80px',
-      background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-      borderRadius: '12px',
-      position: 'relative',
-      zIndex: 2
-    }}>
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '40px',
-        height: '40px',
-        border: '2px solid rgba(255,255,255,0.8)',
-        borderRadius: '4px'
-      }}></div>
-    </div>
-    {/* Network lines */}
-    <div style={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: '160px',
-      height: '160px',
-      borderRadius: '50%'
-    }}>
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: '2px',
-          height: '80px',
-          background: 'linear-gradient(to bottom, #4F46E5, transparent)',
-          transform: `translate(-50%, -50%) rotate(${i * 90}deg)`,
-          transformOrigin: 'center bottom',
-          animation: `pulse 2s ease-in-out infinite ${i * 0.2}s`
-        }}>
-          <div style={{
-            position: 'absolute',
-            top: '0',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '8px',
-            height: '8px',
-            background: '#4F46E5',
-            borderRadius: '50%',
-            animation: `glow 2s ease-in-out infinite ${i * 0.3}s`
-          }}></div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const AnimatedGeometricPattern = () => (
-  <div style={{
-    width: '200px',
-    height: '200px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  }}>
-    <div style={{
-      width: '120px',
-      height: '120px',
-      position: 'relative'
-    }}>
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: '60px',
-          height: '60px',
-          border: '2px solid rgba(79, 70, 229, 0.6)',
-          borderRadius: '50%',
-          transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
-          animation: `rotate 8s linear infinite ${i * 0.5}s`
-        }}>
-          <div style={{
-            position: 'absolute',
-            top: '-3px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '6px',
-            height: '6px',
-            background: '#4F46E5',
-            borderRadius: '50%'
-          }}></div>
-        </div>
-      ))}
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '20px',
-        height: '20px',
-        background: '#7C3AED',
-        borderRadius: '50%',
-        animation: 'pulse 2s ease-in-out infinite'
-      }}></div>
-    </div>
+  <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #40E0D0, #7C3AED)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#40E0D0', opacity: 0.8 }}></div>
   </div>
 );
 
 const AnimatedNetworkNodes = () => (
-  <div style={{
-    width: '200px',
-    height: '200px',
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  }}>
-    <svg width="200" height="200" style={{ position: 'absolute' }}>
-      {/* Grid lines */}
-      <defs>
-        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(79, 70, 229, 0.3)" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <rect width="200" height="200" fill="url(#grid)" />
-
-      {/* Network connections */}
-      <g>
-        <line x1="50" y1="50" x2="150" y2="50" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
-          <animate attributeName="stroke-opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite" />
-        </line>
-        <line x1="50" y1="150" x2="150" y2="150" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
-          <animate attributeName="stroke-opacity" values="1;0.3;1" dur="3s" repeatCount="indefinite" />
-        </line>
-        <line x1="50" y1="50" x2="50" y2="150" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
-          <animate attributeName="stroke-opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
-        </line>
-        <line x1="150" y1="50" x2="150" y2="150" stroke="rgba(79, 70, 229, 0.6)" strokeWidth="2">
-          <animate attributeName="stroke-opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
-        </line>
-      </g>
-
-      {/* Nodes */}
-      <circle cx="50" cy="50" r="6" fill="#4F46E5">
-        <animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite" />
-      </circle>
-      <circle cx="150" cy="50" r="6" fill="#7C3AED">
-        <animate attributeName="r" values="8;4;8" dur="2s" repeatCount="indefinite" begin="0.5s" />
-      </circle>
-      <circle cx="50" cy="150" r="6" fill="#4F46E5">
-        <animate attributeName="r" values="6;10;6" dur="2.5s" repeatCount="indefinite" begin="1s" />
-      </circle>
-      <circle cx="150" cy="150" r="6" fill="#7C3AED">
-        <animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite" begin="1.5s" />
-      </circle>
-      <circle cx="100" cy="100" r="8" fill="#8B5CF6">
-        <animate attributeName="r" values="6;12;6" dur="3s" repeatCount="indefinite" />
-      </circle>
-    </svg>
+  <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #4F46E5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#8B5CF6', opacity: 0.8 }}></div>
   </div>
 );
+
+// --- ROUTER WRAPPER AND MAIN APP ---
+// ...existing code...
+// ...existing code...
 
 
 // Enhanced Landing Page Component with exact Inno replication
@@ -1266,8 +1080,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
   // Add scroll animation observer
   useEffect(() => {
-    const observerCallback = (entries) => {
-      entries.forEach((entry) => {
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry: IntersectionObserverEntry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
         }
@@ -1291,28 +1105,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   return (
     <>
       <style>{keyframes}</style>
-      <div style={styles.landingContainer}>
-        <div style={styles.heroBackground}></div>
-        <div style={styles.lightBeams}></div>
-        <div style={styles.particles}></div>
+  <div style={styles.landingContainer as React.CSSProperties}>
+  <div style={styles.heroBackground as React.CSSProperties}></div>
+  <div style={styles.lightBeams as React.CSSProperties}></div>
+  {/* Removed undefined styles.particles */}
 
         {/* Enhanced Header */}
-        <motion.header style={styles.header}>
-          <nav style={styles.nav}>
-            <motion.div style={styles.logo}>
+        <motion.header style={styles.header as React.CSSProperties}>
+          <nav style={styles.nav as React.CSSProperties}>
+            <motion.div style={styles.logo as React.CSSProperties}>
               <div style={styles.logoIcon} className="hover-glow">⚖</div>
               <span>VerdictXR</span>
             </motion.div>
 
-            <div style={styles.navLinks}>
-              <a href="#about-section" style={styles.navLink} className="nav-link">About</a>
-              <a href="#features-section" style={styles.navLink} className="nav-link">Features</a>
-              <a href="#" style={styles.navLink} className="nav-link">Privacy Policy</a>
-              <a href="#" style={styles.navLink} className="nav-link">Terms of Use</a>
+            <div style={styles.navLinks as React.CSSProperties}>
+              <a href="#about-section" style={styles.navLink as React.CSSProperties} className="nav-link">About</a>
+              <a href="#features-section" style={styles.navLink as React.CSSProperties} className="nav-link">Features</a>
+              <a href="#" style={styles.navLink as React.CSSProperties} className="nav-link">Privacy Policy</a>
+              <a href="#" style={styles.navLink as React.CSSProperties} className="nav-link">Terms of Use</a>
             </div>
 
             <button
-              style={styles.headerCtaButton}
+              style={styles.headerCtaButton as React.CSSProperties}
               className="hover-glow"
               onClick={onLogin}
               onMouseEnter={e => {
@@ -1330,16 +1144,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         </motion.header>
 
         {/* Enhanced Hero Section */}
-        <motion.section style={styles.hero}>
+  <motion.section style={styles.hero as React.CSSProperties}>
           <motion.div
-            style={styles.heroTag}
+            style={styles.heroTag as React.CSSProperties}
             className="animate-on-scroll"
           >
             Revolutionary Legal Solutions
           </motion.div>
 
           <motion.h1
-            style={styles.heroTitle}
+            style={styles.heroTitle as React.CSSProperties}
             className="animate-on-scroll stagger-1"
           >
             Revolutionizing Legal Education<br />
@@ -1347,36 +1161,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           </motion.h1>
 
           <motion.p
-            style={styles.heroSubtitle}
+            style={styles.heroSubtitle as React.CSSProperties}
             className="animate-on-scroll stagger-2"
           >
             Experience the future of legal education with our groundbreaking VR platform. Combining photorealistic courtroom simulations with advanced AI legal experts for unprecedented immersive learning experiences.
           </motion.p>
 
           <motion.div
-            style={styles.heroAvatars}
+            style={styles.heroAvatars as React.CSSProperties}
             className="animate-on-scroll stagger-3"
           >
-            <div style={styles.avatarGroup}>
+            <div style={styles.avatarGroup as React.CSSProperties}>
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  style={{
-                    ...styles.avatar,
-                    animationDelay: `${i * 0.3}s`
-                  }}
+                  style={{ ...(styles.avatar as React.CSSProperties), animationDelay: `${i * 0.3}s` }}
                 ></div>
               ))}
             </div>
-            <span style={styles.trustedText}>Trusted by 1.2k+ legal professionals worldwide</span>
+            <span style={styles.trustedText as React.CSSProperties}>Trusted by 1.2k+ legal professionals worldwide</span>
           </motion.div>
 
           <motion.div
-            style={styles.heroButtons}
+            style={styles.heroButtons as React.CSSProperties}
             className="animate-on-scroll stagger-4"
           >
             <button
-              style={styles.primaryButton}
+              style={styles.primaryButton as React.CSSProperties}
               className="hover-glow"
               onClick={onLogin}
               onMouseEnter={e => {
@@ -1391,7 +1202,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               Begin VR Journey
             </button>
             <button
-              style={styles.secondaryButton}
+              style={styles.secondaryButton as React.CSSProperties}
               className="hover-3d"
               onMouseEnter={e => {
                 e.currentTarget.style.borderColor = 'rgba(79, 70, 229, 0.6)';
@@ -1408,98 +1219,98 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         </motion.section>
 
         {/* Enhanced Stats Section */}
-        <motion.section style={styles.statsSection}>
-          <div style={styles.statsContainer}>
+  <motion.section style={styles.statsSection as React.CSSProperties}>
+          <div style={styles.statsContainer as React.CSSProperties}>
             <motion.div
-              style={styles.statItem}
+              style={styles.statItem as React.CSSProperties}
               className="animate-on-scroll stagger-1"
             >
-              <div style={styles.statLabel}>VR Simulations Completed</div>
-              <span style={styles.statNumber}>2,500+</span>
-              <div style={styles.statDesc}>Legal Cases & Scenarios</div>
+              <div style={styles.statLabel as React.CSSProperties}>VR Simulations Completed</div>
+              <span style={styles.statNumber as React.CSSProperties}>2,500+</span>
+              <div style={styles.statDesc as React.CSSProperties}>Legal Cases & Scenarios</div>
             </motion.div>
             <motion.div
-              style={styles.statItem}
+              style={styles.statItem as React.CSSProperties}
               className="animate-on-scroll stagger-2"
             >
-              <div style={styles.statLabel}>Educational Impact</div>
-              <span style={styles.statNumber}>$2M+</span>
-              <div style={styles.statDesc}>Total Learning Value Delivered</div>
+              <div style={styles.statLabel as React.CSSProperties}>Educational Impact</div>
+              <span style={styles.statNumber as React.CSSProperties}>$2M+</span>
+              <div style={styles.statDesc as React.CSSProperties}>Total Learning Value Delivered</div>
             </motion.div>
             <motion.div
-              style={styles.statItem}
+              style={styles.statItem as React.CSSProperties}
               className="animate-on-scroll stagger-3"
             >
-              <div style={styles.statLabel}>Learning Acceleration</div>
-              <span style={styles.statNumber}>95%</span>
-              <div style={styles.statDesc}>Faster Skill Acquisition</div>
+              <div style={styles.statLabel as React.CSSProperties}>Learning Acceleration</div>
+              <span style={styles.statNumber as React.CSSProperties}>95%</span>
+              <div style={styles.statDesc as React.CSSProperties}>Faster Skill Acquisition</div>
             </motion.div>
           </div>
         </motion.section>
 
         {/* Enhanced Features Section */}
-        <motion.section style={styles.featuresSection} id="about-section">
-          <div style={styles.featuresContainer}>
+  <motion.section style={styles.featuresSection as React.CSSProperties} id="about-section">
+          <div style={styles.featuresContainer as React.CSSProperties}>
             <motion.div
-              style={styles.featuresHeader}
+              style={styles.featuresHeader as React.CSSProperties}
               className="animate-on-scroll"
             >
-              <div style={styles.featuresTag}>Immersive Learning Technology</div>
-              <h2 style={styles.featuresTitle}>
+              <div style={styles.featuresTag as React.CSSProperties}>Immersive Learning Technology</div>
+              <h2 style={styles.featuresTitle as React.CSSProperties}>
                 Revolutionizing Legal Education Through Virtual Reality
               </h2>
             </motion.div>
 
             {/* Enhanced Future-Forward Solutions */}
             <motion.div
-              style={styles.featureTwoColumn}
+              style={styles.featureTwoColumn as React.CSSProperties}
               className="animate-on-scroll stagger-1"
             >
-              <div style={styles.featureContent}>
-                <div style={styles.featureIcon} className="hover-glow">🎯</div>
-                <h3 style={styles.featureTitle}>Immersive VR Courtrooms</h3>
-                <p style={styles.featureDesc}>
+              <div style={styles.featureContent as React.CSSProperties}>
+                <div style={styles.featureIcon as React.CSSProperties} className="hover-glow">🎯</div>
+                <h3 style={styles.featureTitle as React.CSSProperties}>Immersive VR Courtrooms</h3>
+                <p style={styles.featureDesc as React.CSSProperties}>
                   Step into photorealistic 3D courtroom environments with haptic feedback, spatial audio, and interactive legal elements. Experience authentic trial procedures with unprecedented immersion and educational depth.
                 </p>
-                <button style={styles.learnMoreBtn} className="hover-glow">Explore VR Features</button>
+                <button style={styles.learnMoreBtn as React.CSSProperties} className="hover-glow">Explore VR Features</button>
               </div>
-              <div style={styles.featureVisual} className="hover-3d">
+              <div style={styles.featureVisual as React.CSSProperties} className="hover-3d">
                 <AnimatedGeometricPattern />
               </div>
             </motion.div>
 
             {/* Enhanced AI Legal System */}
             <motion.div
-              style={styles.featureTwoColumn}
+              style={styles.featureTwoColumn as React.CSSProperties}
               className="animate-on-scroll stagger-2"
             >
-              <div style={styles.featureVisual} className="hover-3d">
+              <div style={styles.featureVisual as React.CSSProperties} className="hover-3d">
                 <AnimatedOrbitingCircle />
               </div>
-              <div style={styles.featureContent}>
-                <div style={styles.featureIcon} className="hover-glow">🧠</div>
-                <h3 style={styles.featureTitle}>Advanced AI Legal Experts</h3>
-                <p style={styles.featureDesc}>
+              <div style={styles.featureContent as React.CSSProperties}>
+                <div style={styles.featureIcon as React.CSSProperties} className="hover-glow">🧠</div>
+                <h3 style={styles.featureTitle as React.CSSProperties}>Advanced AI Legal Experts</h3>
+                <p style={styles.featureDesc as React.CSSProperties}>
                   Interact with sophisticated AI lawyers trained on comprehensive legal databases. Experience dual-perspective legal analysis with prosecution and defense AI providing real-time case strategy and argumentation.
                 </p>
-                <button style={styles.learnMoreBtn} className="hover-glow">Meet AI Lawyers</button>
+                <button style={styles.learnMoreBtn as React.CSSProperties} className="hover-glow">Meet AI Lawyers</button>
               </div>
             </motion.div>
 
             {/* Enhanced Blockchain Integration */}
             <motion.div
-              style={styles.featureTwoColumn}
+              style={styles.featureTwoColumn as React.CSSProperties}
               className="animate-on-scroll stagger-3"
             >
-              <div style={styles.featureContent}>
-                <div style={styles.featureIcon} className="hover-glow">🔗</div>
-                <h3 style={styles.featureTitle}>Blockchain-Secured Learning</h3>
-                <p style={styles.featureDesc}>
+              <div style={styles.featureContent as React.CSSProperties}>
+                <div style={styles.featureIcon as React.CSSProperties} className="hover-glow">🔗</div>
+                <h3 style={styles.featureTitle as React.CSSProperties}>Blockchain-Secured Learning</h3>
+                <p style={styles.featureDesc as React.CSSProperties}>
                   Experience secure, decentralized legal education powered by Internet Computer Protocol. All trial records, achievements, and learning progress are immutably stored with complete transparency and security.
                 </p>
-                <button style={styles.learnMoreBtn} className="hover-glow">View Security</button>
+                <button style={styles.learnMoreBtn as React.CSSProperties} className="hover-glow">View Security</button>
               </div>
-              <div style={styles.featureVisual} className="hover-3d">
+              <div style={styles.featureVisual as React.CSSProperties} className="hover-3d">
                 <AnimatedBlockchainNetwork />
               </div>
             </motion.div>
@@ -1507,46 +1318,46 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         </motion.section>
 
         {/* Enhanced Four Card Section */}
-        <motion.section style={styles.fourCardSection} id="features-section">
+  <motion.section style={styles.fourCardSection as React.CSSProperties} id="features-section">
           <motion.h2
-            style={styles.fourCardTitle}
+            style={styles.fourCardTitle as React.CSSProperties}
             className="animate-on-scroll"
           >
             Transforming Legal Education Through Innovation
           </motion.h2>
 
-          <div style={styles.fourCardGrid}>
+          <div style={styles.fourCardGrid as React.CSSProperties}>
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-1"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <AnimatedOrbitingCircle />
               </div>
-              <h3 style={styles.fourCardItemTitle}>Identity Verification Systems</h3>
-              <p style={styles.fourCardDesc}>
+              <h3 style={styles.fourCardItemTitle as React.CSSProperties}>Identity Verification Systems</h3>
+              <p style={styles.fourCardDesc as React.CSSProperties}>
                 Advanced decentralized identity management ensuring complete privacy protection while maintaining secure access to all VR legal learning environments and AI consultations.
               </p>
             </motion.div>
 
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-2"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <AnimatedBlockchainNetwork />
               </div>
-              <h3 style={styles.fourCardItemTitle}>Seamless VR Integration</h3>
-              <p style={styles.fourCardDesc}>
+              <h3 style={styles.fourCardItemTitle as React.CSSProperties}>Seamless VR Integration</h3>
+              <p style={styles.fourCardDesc as React.CSSProperties}>
                 Effortlessly integrate cutting-edge VR technology into existing educational frameworks, enhancing traditional legal education with immersive 3D learning experiences.
               </p>
             </motion.div>
 
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-3"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1562,21 +1373,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                   ⚡
                 </div>
               </div>
-              <h3 style={styles.fourCardItemTitle}>Real-Time Analytics</h3>
-              <p style={styles.fourCardDesc}>
+              <h3 style={styles.fourCardItemTitle as React.CSSProperties}>Real-Time Analytics</h3>
+              <p style={styles.fourCardDesc as React.CSSProperties}>
                 Monitor learning progress with comprehensive real-time analytics, tracking VR engagement, case completion rates, and skill development metrics for optimal educational outcomes.
               </p>
             </motion.div>
 
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-4"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <AnimatedNetworkNodes />
               </div>
-              <h3 style={styles.fourCardItemTitle}>Infinite Scalability</h3>
-              <p style={styles.fourCardDesc}>
+              <h3 style={styles.fourCardItemTitle as React.CSSProperties}>Infinite Scalability</h3>
+              <p style={styles.fourCardDesc as React.CSSProperties}>
                 Enterprise-grade VR infrastructure supporting unlimited concurrent users, from individual learners to massive educational institutions with seamless performance optimization.
               </p>
           </motion.div>
@@ -1586,11 +1397,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       {/* Continue with remaining sections... */ }
       < motion.section
   style = {{
-            ...styles.finalCtaSection,
-  margin: '0',
+          ...(styles.finalCtaSection as React.CSSProperties),
+    margin: '0',
     width: '100%',
       padding: '120px 32px'
-          }}
+        }}
 className = "animate-on-scroll"
   >
           <h2 style={styles.finalCtaTitle}>
@@ -1600,7 +1411,7 @@ className = "animate-on-scroll"
             Join thousands of legal professionals already transforming their careers through immersive VR learning. Experience the most advanced legal education platform ever created.
           </p>
           <button 
-            style={styles.primaryButton}
+            style={styles.primaryButton as React.CSSProperties}
             className="hover-glow"
             onClick={onLogin}
             onMouseEnter={e => {
@@ -1629,21 +1440,21 @@ className = "animate-on-scroll"
         <span>VerdictXR</span>
       </div>
 
-      <div style={styles.footerSection}>
+  <div style={styles.footerSection as React.CSSProperties}>
         <div style={styles.footerSectionTitle}>VR Features</div>
         <a href="#" style={styles.footerLink}>Immersive Courtrooms</a>
         <a href="#" style={styles.footerLink}>AI Legal Experts</a>
         <a href="#" style={styles.footerLink}>Case Simulations</a>
       </div>
 
-      <div style={styles.footerSection}>
+  <div style={styles.footerSection as React.CSSProperties}>
         <div style={styles.footerSectionTitle}>Platform</div>
         <a href="#" style={styles.footerLink}>About Technology</a>
         <a href="#" style={styles.footerLink}>System Requirements</a>
         <a href="#" style={styles.footerLink}>Privacy & Security</a>
       </div>
 
-      <div style={styles.footerSection}>
+  <div style={styles.footerSection as React.CSSProperties}>
         <div style={styles.footerSectionTitle}>Community</div>
         <a href="#" style={styles.footerLink}>Legal Professionals</a>
         <a href="#" style={styles.footerLink}>Educational Partners</a>
@@ -1651,7 +1462,7 @@ className = "animate-on-scroll"
       </div>
     </div>
 
-    <div style={styles.footerBottom}>
+  <div style={styles.footerBottom as React.CSSProperties}>
       © 2024 VerdictXR • Powered by Internet Computer Protocol • Next-Generation VR Legal Education
     </div>
   </div>
@@ -1757,7 +1568,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
       </header>
 
       <div style={styles.content}>
-        <h1 style={styles.title}>Revolutionary Legal Education Platform</h1>
+  <h1 style={styles.title as React.CSSProperties}>Revolutionary Legal Education Platform</h1>
 
         <p style={styles.text}>
           VerdictXR represents the future of legal education, combining cutting-edge virtual reality
@@ -1792,14 +1603,22 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
   );
 };
 
-// Main App Component
-const App = () => {
+// ...other components...
+
+// --- ROUTER WRAPPER AND MAIN APP ---
+const CourtroomVRFullPageWrapper: React.FC = () => {
+  const location = useLocation();
+  const { participants = [], evidence = [] } = (location.state || {}) as any;
+  return <CourtroomVRFullPage participants={participants} evidence={evidence} />;
+};
+
+const App: React.FC = () => {
   const { principal, isAuthenticated, login, logout } = useInternetIdentity();
   const [currentView, setCurrentView] = useState('landing');
   const [selectedRole, setSelectedRole] = useState('');
   const [currentTrialId, setCurrentTrialId] = useState(null);
 
-  const handleComplete = (role, trialId) => {
+  const handleComplete = (role: string, trialId: any) => {
     setSelectedRole(role);
     setCurrentTrialId(trialId);
   };
@@ -1825,83 +1644,42 @@ const App = () => {
     }
   }, [isAuthenticated, currentView]);
 
-  const navStyles = {
-    dashboardNav: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      background: 'rgba(0, 0, 0, 0.9)',
-      backdropFilter: 'blur(20px)',
-      padding: '15px 20px',
-      zIndex: 1000,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      color: '#ffffff',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-    },
-
-    navButton: {
-      background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      padding: '8px 16px',
-      fontSize: '13px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-    }
-  };
-
-  if (currentView === 'about') {
-    return <AboutPage onBack={() => setCurrentView('landing')} />;
-  }
-
-  if (currentView === 'dashboard' && isAuthenticated && principal) {
-    return (
-      <>
-        <nav style={navStyles.dashboardNav}>
-          <div style={{ fontSize: '16px', fontWeight: '600' }}>
-            VerdictXR Dashboard
-          </div>
-          <div>
-            <button
-              style={navStyles.navButton}
-              onClick={() => setCurrentView('about')}
-              onMouseEnter={e => {
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              Platform Info
-            </button>
-            <button
-              style={{ ...navStyles.navButton, marginLeft: '8px' }}
-              onClick={handleLogout}
-              onMouseEnter={e => {
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              Disconnect
-            </button>
-          </div>
-        </nav>
-
-        <div style={{ paddingTop: '60px', background: '#000000', minHeight: '100vh' }}>
-          <Dashboard principal={principal} onComplete={handleComplete} />
-        </div>
-      </>
-    );
-  }
-
-  return <LandingPage onLogin={handleLogin} />;
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={
+          currentView === 'about' ? <AboutPage onBack={() => setCurrentView('landing')} /> :
+          (currentView === 'dashboard' && isAuthenticated && principal ?
+            <>
+              <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(20px)', padding: '15px 20px', zIndex: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#ffffff', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600' }}>
+                  VerdictXR Dashboard
+                </div>
+                <div>
+                  <button
+                    style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                    onClick={() => setCurrentView('about')}
+                  >
+                    Platform Info
+                  </button>
+                  <button
+                    style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', marginLeft: '8px' }}
+                    onClick={handleLogout}
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </nav>
+              <div style={{ paddingTop: '60px', background: '#000000', minHeight: '100vh' }}>
+                <Dashboard principal={principal} onComplete={handleComplete} />
+              </div>
+            </>
+          : <LandingPage onLogin={handleLogin} />)
+        } />
+        <Route path="/vr-courtroom" element={<CourtroomVRFullPageWrapper />} />
+      </Routes>
+    </Router>
+  );
 };
 
 export default App;
