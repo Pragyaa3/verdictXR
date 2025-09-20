@@ -1,0 +1,1 @@
+// Copy the full contents of newCourtfrontend/script.js here
