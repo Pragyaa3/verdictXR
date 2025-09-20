@@ -1,5 +1,6 @@
 //frontend/src/components/Dashboard.tsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { courtBackend } from '../api/canister';
 import { Principal } from '@dfinity/principal';
 import CourtroomVR from './CourtroomVR';
@@ -55,6 +56,7 @@ const roles = [
 
 const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const navigate = useNavigate();
   const [trialIdInput, setTrialIdInput] = useState<string>('');
   const [inviteCode, setInviteCode] = useState<string>('');
   const [myInviteCode, setMyInviteCode] = useState<string>('');
@@ -531,19 +533,10 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
           <h2 style={{ color: '#4CAF50', fontSize: '1.5rem', marginBottom: '15px' }}>🥽 VR Courtroom Experience</h2>
           <button
             style={{ ...styles.button, ...styles.primaryButton }}
-            onClick={() => setShowVR(!showVR)}
+            onClick={() => navigate('/vr-courtroom', { state: { participants, evidence: evidence3d } })}
           >
-            {showVR ? '👁️ Hide VR Courtroom' : '🥽 Show VR Courtroom'}
+            🥽 Show VR Courtroom
           </button>
-
-          {showVR && (
-            <div style={{ marginTop: '20px' }}>
-              <CourtroomVR participants={participants} evidence={evidence3d} />
-              <p style={{ color: '#fff', textAlign: 'center', marginTop: '10px', fontSize: '14px' }}>
-                💡 Click on avatars and evidence in the courtroom for more information
-              </p>
-            </div>
-          )}
         </div>
       )}
 
