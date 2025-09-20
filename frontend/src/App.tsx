@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useInternetIdentity } from './hooks/useAuth';
 import Dashboard from './components/Dashboard';
 import { motion } from 'framer-motion';
+import PrivacyPolicyPage from './PrivacyPolicy';
+import TermsOfUsePage from "./TermsOfUse";
+import logo from './assets/logo.jpeg';
 
 // Animated Components for Motion Images
 const AnimatedOrbitingCircle = () => (
@@ -226,9 +229,10 @@ const AnimatedNetworkNodes = () => (
 // Enhanced Landing Page Component with exact Inno replication
 interface LandingPageProps {
   onLogin: () => void;
+  setCurrentView: (view: string) => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) => {
   const [scrollY, setScrollY] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -1300,16 +1304,46 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         <motion.header style={styles.header}>
           <nav style={styles.nav}>
             <motion.div style={styles.logo}>
-              <div style={styles.logoIcon} className="hover-glow">⚖</div>
+              <img
+                src={logo}
+                alt="VerdictXR Logo"
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  objectFit: 'cover'
+                }}
+                className="hover-glow"
+              />
               <span>VerdictXR</span>
             </motion.div>
 
             <div style={styles.navLinks}>
               <a href="#about-section" style={styles.navLink} className="nav-link">About</a>
               <a href="#features-section" style={styles.navLink} className="nav-link">Features</a>
-              <a href="#" style={styles.navLink} className="nav-link">Privacy Policy</a>
-              <a href="#" style={styles.navLink} className="nav-link">Terms of Use</a>
-            </div>
+              <a
+                href="#"
+                style={styles.navLink}
+                className="nav-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentView('privacy');
+                }}
+              >
+                Privacy Policy
+              </a>
+
+              <a
+                href="#"
+                style={styles.navLink}
+                className="nav-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentView('terms');
+                }}
+              >
+                Terms of Use
+              </a>            </div>
 
             <button
               style={styles.headerCtaButton}
@@ -1579,27 +1613,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <p style={styles.fourCardDesc}>
                 Enterprise-grade VR infrastructure supporting unlimited concurrent users, from individual learners to massive educational institutions with seamless performance optimization.
               </p>
-          </motion.div>
-      </div>
-    </motion.section >
+            </motion.div>
+          </div>
+        </motion.section >
 
-      {/* Continue with remaining sections... */ }
-      < motion.section
-  style = {{
+        {/* Continue with remaining sections... */}
+        < motion.section
+          style={{
             ...styles.finalCtaSection,
-  margin: '0',
-    width: '100%',
-      padding: '120px 32px'
+            margin: '0',
+            width: '100%',
+            padding: '120px 32px'
           }}
-className = "animate-on-scroll"
-  >
+          className="animate-on-scroll"
+        >
           <h2 style={styles.finalCtaTitle}>
             Step Into the Future of Legal Education
           </h2>
           <p style={styles.finalCtaDesc}>
             Join thousands of legal professionals already transforming their careers through immersive VR learning. Experience the most advanced legal education platform ever created.
           </p>
-          <button 
+          <button
             style={styles.primaryButton}
             className="hover-glow"
             onClick={onLogin}
@@ -1616,45 +1650,54 @@ className = "animate-on-scroll"
           </button>
         </motion.section >
 
-  {/* Enhanced Footer */ }
-  < footer style = {{
+        {/* Enhanced Footer */}
+        < footer style={{
           ...styles.footer,
-    padding: '80px 0 40px',
-      width: '100%'
-}}>
-  <div style={styles.footerContainer}>
-    <div style={styles.footerTop}>
-      <div style={styles.footerBrand}>
-        <div style={styles.logoIcon}>⚖</div>
-        <span>VerdictXR</span>
-      </div>
+          padding: '80px 0 40px',
+          width: '100%'
+        }}>
+          <div style={styles.footerContainer}>
+            <div style={styles.footerTop}>
+              <div style={styles.footerBrand}>
+                <img
+                  src={logo}
+                  alt="VerdictXR Logo"
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '6px',
+                    objectFit: 'cover'
+                  }}
+                />
+                <span>VerdictXR</span>
+              </div>
 
-      <div style={styles.footerSection}>
-        <div style={styles.footerSectionTitle}>VR Features</div>
-        <a href="#" style={styles.footerLink}>Immersive Courtrooms</a>
-        <a href="#" style={styles.footerLink}>AI Legal Experts</a>
-        <a href="#" style={styles.footerLink}>Case Simulations</a>
-      </div>
+              <div style={styles.footerSection}>
+                <div style={styles.footerSectionTitle}>VR Features</div>
+                <a href="#" style={styles.footerLink}>Immersive Courtrooms</a>
+                <a href="#" style={styles.footerLink}>AI Legal Experts</a>
+                <a href="#" style={styles.footerLink}>Case Simulations</a>
+              </div>
 
-      <div style={styles.footerSection}>
-        <div style={styles.footerSectionTitle}>Platform</div>
-        <a href="#" style={styles.footerLink}>About Technology</a>
-        <a href="#" style={styles.footerLink}>System Requirements</a>
-        <a href="#" style={styles.footerLink}>Privacy & Security</a>
-      </div>
+              <div style={styles.footerSection}>
+                <div style={styles.footerSectionTitle}>Platform</div>
+                <a href="#" style={styles.footerLink}>About Technology</a>
+                <a href="#" style={styles.footerLink}>System Requirements</a>
+                <a href="#" style={styles.footerLink}>Privacy & Security</a>
+              </div>
 
-      <div style={styles.footerSection}>
-        <div style={styles.footerSectionTitle}>Community</div>
-        <a href="#" style={styles.footerLink}>Legal Professionals</a>
-        <a href="#" style={styles.footerLink}>Educational Partners</a>
-        <a href="#" style={styles.footerLink}>Developer Resources</a>
-      </div>
-    </div>
+              <div style={styles.footerSection}>
+                <div style={styles.footerSectionTitle}>Community</div>
+                <a href="#" style={styles.footerLink}>Legal Professionals</a>
+                <a href="#" style={styles.footerLink}>Educational Partners</a>
+                <a href="#" style={styles.footerLink}>Developer Resources</a>
+              </div>
+            </div>
 
-    <div style={styles.footerBottom}>
-      © 2024 VerdictXR • Powered by Internet Computer Protocol • Next-Generation VR Legal Education
-    </div>
-  </div>
+            <div style={styles.footerBottom}>
+              © 2024 VerdictXR • Powered by Internet Computer Protocol • Next-Generation VR Legal Education
+            </div>
+          </div>
         </footer >
       </div >
     </>
@@ -1855,6 +1898,14 @@ const App = () => {
     }
   };
 
+  if (currentView === 'privacy') {
+    return <PrivacyPolicyPage onBack={() => setCurrentView('landing')} />;
+  }
+
+  if (currentView === 'terms') {
+    return <TermsOfUsePage onBack={() => setCurrentView('landing')} />;
+  }
+
   if (currentView === 'about') {
     return <AboutPage onBack={() => setCurrentView('landing')} />;
   }
@@ -1901,7 +1952,7 @@ const App = () => {
     );
   }
 
-  return <LandingPage onLogin={handleLogin} />;
+  return <LandingPage onLogin={handleLogin} setCurrentView={setCurrentView} />;
 };
 
 export default App;
