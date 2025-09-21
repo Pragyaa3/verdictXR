@@ -1067,6 +1067,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
   };
 
   const keyframes = `
+   * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
     @keyframes rotate {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -1295,13 +1306,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
   return (
     <>
       <style>{keyframes}</style>
-      <div style={styles.landingContainer}>
-        <div style={styles.heroBackground}></div>
-        <div style={styles.lightBeams}></div>
-        <div style={styles.particles}></div>
+      <div style={styles.landingContainer as React.CSSProperties}>
+        <div style={styles.heroBackground as React.CSSProperties}></div>
+        <div style={styles.lightBeams as React.CSSProperties}></div>
+        <div style={styles.particles as React.CSSProperties}></div>
 
         {/* Enhanced Header */}
-        <motion.header style={styles.header}>
+        <motion.header style={styles.header as React.CSSProperties}>
           <nav style={styles.nav}>
             <motion.div style={styles.logo}>
               <img
@@ -1364,9 +1375,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
         </motion.header>
 
         {/* Enhanced Hero Section */}
-        <motion.section style={styles.hero}>
+        <motion.section style={styles.hero as React.CSSProperties}>
           <motion.div
-            style={styles.heroTag}
+            style={styles.heroTag as React.CSSProperties}
             className="animate-on-scroll"
           >
             Revolutionary Legal Solutions
@@ -1442,29 +1453,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
         </motion.section>
 
         {/* Enhanced Stats Section */}
-        <motion.section style={styles.statsSection}>
-          <div style={styles.statsContainer}>
+        <motion.section style={styles.statsSection as React.CSSProperties}>
+          <div style={styles.statsContainer as React.CSSProperties}>
             <motion.div
-              style={styles.statItem}
+              style={styles.statItem as React.CSSProperties}
               className="animate-on-scroll stagger-1"
             >
-              <div style={styles.statLabel}>VR Simulations Completed</div>
+              <div style={styles.statLabel as React.CSSProperties}>VR Simulations Completed</div>
               <span style={styles.statNumber}>2,500+</span>
               <div style={styles.statDesc}>Legal Cases & Scenarios</div>
             </motion.div>
             <motion.div
-              style={styles.statItem}
+              style={styles.statItem as React.CSSProperties}
               className="animate-on-scroll stagger-2"
             >
-              <div style={styles.statLabel}>Educational Impact</div>
+              <div style={styles.statLabel as React.CSSProperties}>Educational Impact</div>
               <span style={styles.statNumber}>$2M+</span>
               <div style={styles.statDesc}>Total Learning Value Delivered</div>
             </motion.div>
             <motion.div
-              style={styles.statItem}
+              style={styles.statItem as React.CSSProperties}
               className="animate-on-scroll stagger-3"
             >
-              <div style={styles.statLabel}>Learning Acceleration</div>
+              <div style={styles.statLabel as React.CSSProperties}>Learning Acceleration</div>
               <span style={styles.statNumber}>95%</span>
               <div style={styles.statDesc}>Faster Skill Acquisition</div>
             </motion.div>
@@ -1475,10 +1486,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
         <motion.section style={styles.featuresSection} id="about-section">
           <div style={styles.featuresContainer}>
             <motion.div
-              style={styles.featuresHeader}
+              style={styles.featuresHeader as React.CSSProperties}
               className="animate-on-scroll"
             >
-              <div style={styles.featuresTag}>Immersive Learning Technology</div>
+              <div style={styles.featuresTag as React.CSSProperties}>Immersive Learning Technology</div>
               <h2 style={styles.featuresTitle}>
                 Revolutionizing Legal Education Through Virtual Reality
               </h2>
@@ -1495,9 +1506,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
                 <p style={styles.featureDesc}>
                   Step into photorealistic 3D courtroom environments with haptic feedback, spatial audio, and interactive legal elements. Experience authentic trial procedures with unprecedented immersion and educational depth.
                 </p>
-                <button style={styles.learnMoreBtn} className="hover-glow">Explore VR Features</button>
+                <button style={styles.learnMoreBtn as React.CSSProperties} className="hover-glow">Explore VR Features</button>
               </div>
-              <div style={styles.featureVisual} className="hover-3d">
+              <div style={styles.featureVisual as React.CSSProperties} className="hover-3d">
                 <AnimatedGeometricPattern />
               </div>
             </motion.div>
@@ -1507,7 +1518,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
               style={styles.featureTwoColumn}
               className="animate-on-scroll stagger-2"
             >
-              <div style={styles.featureVisual} className="hover-3d">
+              <div style={styles.featureVisual as React.CSSProperties} className="hover-3d">
                 <AnimatedOrbitingCircle />
               </div>
               <div style={styles.featureContent}>
@@ -1516,7 +1527,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
                 <p style={styles.featureDesc}>
                   Interact with sophisticated AI lawyers trained on comprehensive legal databases. Experience dual-perspective legal analysis with prosecution and defense AI providing real-time case strategy and argumentation.
                 </p>
-                <button style={styles.learnMoreBtn} className="hover-glow">Meet AI Lawyers</button>
+                <button style={styles.learnMoreBtn as React.CSSProperties} className="hover-glow">Meet AI Lawyers</button>
               </div>
             </motion.div>
 
@@ -1531,9 +1542,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
                 <p style={styles.featureDesc}>
                   Experience secure, decentralized legal education powered by Internet Computer Protocol. All trial records, achievements, and learning progress are immutably stored with complete transparency and security.
                 </p>
-                <button style={styles.learnMoreBtn} className="hover-glow">View Security</button>
+                <button style={styles.learnMoreBtn as React.CSSProperties} className="hover-glow">View Security</button>
               </div>
-              <div style={styles.featureVisual} className="hover-3d">
+              <div style={styles.featureVisual as React.CSSProperties} className="hover-3d">
                 <AnimatedBlockchainNetwork />
               </div>
             </motion.div>
@@ -1543,7 +1554,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
         {/* Enhanced Four Card Section */}
         <motion.section style={styles.fourCardSection} id="features-section">
           <motion.h2
-            style={styles.fourCardTitle}
+            style={styles.fourCardTitle as React.CSSProperties}
             className="animate-on-scroll"
           >
             Transforming Legal Education Through Innovation
@@ -1551,10 +1562,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
 
           <div style={styles.fourCardGrid}>
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-1"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <AnimatedOrbitingCircle />
               </div>
               <h3 style={styles.fourCardItemTitle}>Identity Verification Systems</h3>
@@ -1564,10 +1575,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
             </motion.div>
 
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-2"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <AnimatedBlockchainNetwork />
               </div>
               <h3 style={styles.fourCardItemTitle}>Seamless VR Integration</h3>
@@ -1577,10 +1588,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
             </motion.div>
 
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-3"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1603,10 +1614,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
             </motion.div>
 
             <motion.div
-              style={styles.fourCard}
+              style={styles.fourCard as React.CSSProperties}
               className="animate-on-scroll card-hover stagger-4"
             >
-              <div style={styles.fourCardVisual}>
+              <div style={styles.fourCardVisual as React.CSSProperties}>
                 <AnimatedNetworkNodes />
               </div>
               <h3 style={styles.fourCardItemTitle}>Infinite Scalability</h3>
@@ -1620,7 +1631,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
         {/* Continue with remaining sections... */}
         < motion.section
           style={{
-            ...styles.finalCtaSection,
+            ...styles.finalCtaSection as React.CSSProperties,
             margin: '0',
             width: '100%',
             padding: '120px 32px'
@@ -1634,7 +1645,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
             Join thousands of legal professionals already transforming their careers through immersive VR learning. Experience the most advanced legal education platform ever created.
           </p>
           <button
-            style={styles.primaryButton}
+            style={styles.primaryButton as React.CSSProperties}
             className="hover-glow"
             onClick={onLogin}
             onMouseEnter={e => {
@@ -1672,21 +1683,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
                 <span>VerdictXR</span>
               </div>
 
-              <div style={styles.footerSection}>
+              <div style={styles.footerSection as React.CSSProperties}>
                 <div style={styles.footerSectionTitle}>VR Features</div>
                 <a href="#" style={styles.footerLink}>Immersive Courtrooms</a>
                 <a href="#" style={styles.footerLink}>AI Legal Experts</a>
                 <a href="#" style={styles.footerLink}>Case Simulations</a>
               </div>
 
-              <div style={styles.footerSection}>
+              <div style={styles.footerSection as React.CSSProperties}>
                 <div style={styles.footerSectionTitle}>Platform</div>
                 <a href="#" style={styles.footerLink}>About Technology</a>
                 <a href="#" style={styles.footerLink}>System Requirements</a>
                 <a href="#" style={styles.footerLink}>Privacy & Security</a>
               </div>
 
-              <div style={styles.footerSection}>
+              <div style={styles.footerSection as React.CSSProperties}>
                 <div style={styles.footerSectionTitle}>Community</div>
                 <a href="#" style={styles.footerLink}>Legal Professionals</a>
                 <a href="#" style={styles.footerLink}>Educational Partners</a>
@@ -1694,7 +1705,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
               </div>
             </div>
 
-            <div style={styles.footerBottom}>
+            <div style={styles.footerBottom as React.CSSProperties}>
               © 2024 VerdictXR • Powered by Internet Computer Protocol • Next-Generation VR Legal Education
             </div>
           </div>
@@ -1800,7 +1811,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
       </header>
 
       <div style={styles.content}>
-        <h1 style={styles.title}>Revolutionary Legal Education Platform</h1>
+        <h1 style={styles.title as React.CSSProperties}>Revolutionary Legal Education Platform</h1>
 
         <p style={styles.text}>
           VerdictXR represents the future of legal education, combining cutting-edge virtual reality
@@ -1842,7 +1853,7 @@ const App = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [currentTrialId, setCurrentTrialId] = useState(null);
 
-  const handleComplete = (role, trialId) => {
+  const handleComplete = (role: string, trialId) => {
     setSelectedRole(role);
     setCurrentTrialId(trialId);
   };
