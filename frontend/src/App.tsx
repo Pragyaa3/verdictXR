@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import PrivacyPolicyPage from './PrivacyPolicy';
 import TermsOfUsePage from "./TermsOfUse";
 import logo from './assets/logo.jpeg';
+import CourtroomVRFullPage from './components/CourtroomVRFullPage';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 // Animated Components for Motion Images
 const AnimatedOrbitingCircle = () => (
@@ -1846,14 +1848,22 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
   );
 };
 
+
+// --- ROUTER WRAPPER AND MAIN APP ---
+const CourtroomVRFullPageWrapper: React.FC = () => {
+  const location = useLocation();
+  const { participants = [], evidence = [] } = (location.state || {}) as any;
+  return <CourtroomVRFullPage participants={participants} evidence={evidence} />;
+};
+
 // Main App Component
-const App = () => {
+const App: React.FC = () => {
   const { principal, isAuthenticated, login, logout } = useInternetIdentity();
   const [currentView, setCurrentView] = useState('landing');
   const [selectedRole, setSelectedRole] = useState('');
   const [currentTrialId, setCurrentTrialId] = useState(null);
 
-  const handleComplete = (role: string, trialId) => {
+  const handleComplete = (role: string, trialId: any) => {
     setSelectedRole(role);
     setCurrentTrialId(trialId);
   };
@@ -1879,91 +1889,41 @@ const App = () => {
     }
   }, [isAuthenticated, currentView]);
 
-  const navStyles = {
-    dashboardNav: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      background: 'rgba(0, 0, 0, 0.9)',
-      backdropFilter: 'blur(20px)',
-      padding: '15px 20px',
-      zIndex: 1000,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      color: '#ffffff',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-    },
-
-    navButton: {
-      background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      padding: '8px 16px',
-      fontSize: '13px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-    }
-  };
-
-  if (currentView === 'privacy') {
-    return <PrivacyPolicyPage onBack={() => setCurrentView('landing')} />;
-  }
-
-  if (currentView === 'terms') {
-    return <TermsOfUsePage onBack={() => setCurrentView('landing')} />;
-  }
-
-  if (currentView === 'about') {
-    return <AboutPage onBack={() => setCurrentView('landing')} />;
-  }
-
-  if (currentView === 'dashboard' && isAuthenticated && principal) {
-    return (
-      <>
-        <nav style={navStyles.dashboardNav}>
-          <div style={{ fontSize: '16px', fontWeight: '600' }}>
-            VerdictXR Dashboard
-          </div>
-          <div>
-            <button
-              style={navStyles.navButton}
-              onClick={() => setCurrentView('about')}
-              onMouseEnter={e => {
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              Platform Info
-            </button>
-            <button
-              style={{ ...navStyles.navButton, marginLeft: '8px' }}
-              onClick={handleLogout}
-              onMouseEnter={e => {
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              Disconnect
-            </button>
-          </div>
-        </nav>
-
-        <div style={{ paddingTop: '60px', background: '#000000', minHeight: '100vh' }}>
-          <Dashboard principal={principal} onComplete={handleComplete} />
-        </div>
-      </>
-    );
-  }
-
-  return <LandingPage onLogin={handleLogin} setCurrentView={setCurrentView} />;
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={
+          currentView === 'about' ? <AboutPage onBack={() => setCurrentView('landing')} /> :
+          (currentView === 'dashboard' && isAuthenticated && principal ?
+            <>
+              <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(20px)', padding: '15px 20px', zIndex: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#ffffff', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600' }}>
+                  VerdictXR Dashboard
+                </div>
+                <div>
+                  <button
+                    style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                    onClick={() => setCurrentView('about')}
+                  >
+                    Platform Info
+                  </button>
+                  <button
+                    style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', marginLeft: '8px' }}
+                    onClick={handleLogout}
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </nav>
+              <div style={{ paddingTop: '60px', background: '#000000', minHeight: '100vh' }}>
+                <Dashboard principal={principal} onComplete={handleComplete} />
+              </div>
+            </>
+          : <LandingPage onLogin={handleLogin} />)
+        } />
+        <Route path="/vr-courtroom" element={<CourtroomVRFullPageWrapper />} />
+      </Routes>
+    </Router>
+  );
 };
-
 export default App;
