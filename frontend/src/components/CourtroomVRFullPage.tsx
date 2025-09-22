@@ -148,7 +148,7 @@ class CourtroomControls {
     particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     const particleMaterial = new THREE.PointsMaterial({ color: 0x00ff00, size: 0.05, transparent: true, opacity: 0.8 });
     const particleSystem = new THREE.Points(particles, particleMaterial);
-        // No backButton DOM manipulation here
+    // No backButton DOM manipulation here
     this.scene.add(particleSystem);
     let opacity = 0.8;
     const animate = () => {
@@ -550,11 +550,11 @@ const CourtroomVRFullPage: React.FC = () => {
     scene.add(spotLight);
     scene.add(spotLight.target);
 
-  // --- Add courtroom geometry and characters ---
-  const courtroomScene = new CourtroomScene(scene);
-  courtroomScene.createCourtroom();
-  const characters = new Characters(scene);
-  characters.createAllCharacters();
+    // --- Add courtroom geometry and characters ---
+    const courtroomScene = new CourtroomScene(scene);
+    courtroomScene.createCourtroom();
+    const characters = new Characters(scene);
+    characters.createAllCharacters();
 
 
     // Controls: WebXR and desktop fallback
@@ -661,7 +661,7 @@ const CourtroomVRFullPage: React.FC = () => {
           fontSize: '16px',
           cursor: 'pointer',
         }}
-        onClick={() => navigate(-1)}
+        onClick={() => navigate('/')} // Changed from navigate(-1) to navigate('/dashboard')
       >
         ← Back
       </button>
