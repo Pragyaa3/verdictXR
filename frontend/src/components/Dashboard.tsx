@@ -104,6 +104,10 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
   // Evidence State
   const [evidenceUrl, setEvidenceUrl] = useState('');
   const [evidenceDesc, setEvidenceDesc] = useState('');
+  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   // Chat State
   const [chat, setChat] = useState<string>('');
@@ -127,6 +131,63 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
 
   // NEW: Show VR and Controls
   const [showVR, setShowVR] = useState<boolean>(false);
+
+   // File upload utility functions
+  const getFileIcon = (fileType: string): string => {
+    if (fileType.includes('image')) return '🖼️';
+    if (fileType.includes('pdf')) return '📄';
+    if (fileType.includes('video')) return '🎥';
+    if (fileType.includes('audio')) return '🎵';
+    if (fileType.includes('text')) return '📝';
+    if (fileType.includes('word')) return '📃';
+    if (fileType.includes('excel') || fileType.includes('sheet')) return '📊';
+    return '📎';
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // File size limit (10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File size must be less than 10MB');
+      return;
+    }
+
+    setSelectedFile(file);
+    setEvidenceDesc(file.name); // Auto-populate description with filename
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+  };
+
+  const uploadFileToIPFS = async (file: File): Promise<string> => {
+    // Simulate file upload - in production, implement your preferred storage solution
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        // For demo purposes, we'll use data URL
+        // In production, upload to IPFS, AWS S3, or your preferred storage
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Add this with your other useEffects
   useEffect(() => {
@@ -410,18 +471,52 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
     }
   };
 
-  const handleUploadEvidence = async () => {
-    setLoading('Uploading evidence...'); setError(''); setSuccess('');
+   const handleUploadEvidence = async () => {
+    setLoading('Uploading evidence...'); 
+    setError(''); 
+    setSuccess('');
+    setUploadProgress(0);
+
     try {
       const principalObj = Principal.fromText(principal);
-      await courtBackend.submitEvidence(currentTrialId!, evidenceUrl, evidenceDesc, principalObj);
-      setLog((l) => [...l, `📎 Evidence uploaded: ${evidenceDesc} (${evidenceUrl})`]);
-      setEvidenceUrl(''); setEvidenceDesc('');
-      setSuccess('Evidence uploaded!');
+      let finalUrl = evidenceUrl;
+
+      if (uploadMode === 'file' && selectedFile) {
+        setLoading('Processing file...');
+        setUploadProgress(25);
+        
+        // Upload file and get URL
+        finalUrl = await uploadFileToIPFS(selectedFile);
+        setUploadProgress(75);
+        
+        if (!finalUrl) {
+          throw new Error('Failed to upload file');
+        }
+      }
+
+      if (!finalUrl || !evidenceDesc) {
+        setError('Please provide both evidence source and description');
+        return;
+      }
+
+      setUploadProgress(90);
+      await courtBackend.submitEvidence(currentTrialId!, finalUrl, evidenceDesc, principalObj);
+      
+      setLog((l) => [...l, `📎 Evidence uploaded: ${evidenceDesc} ${uploadMode === 'file' ? `(${selectedFile?.name})` : `(${finalUrl})`}`]);
+      
+      // Reset form
+      setEvidenceUrl(''); 
+      setEvidenceDesc('');
+      setSelectedFile(null);
+      setFilePreview(null);
+      setUploadProgress(100);
+      
+      setSuccess('Evidence uploaded successfully!');
     } catch (e) {
-      setError('Error uploading evidence');
+      setError('Error uploading evidence: ' + (e instanceof Error ? e.message : 'Unknown error'));
     } finally {
       setLoading('');
+      setTimeout(() => setUploadProgress(0), 1000);
     }
   };
 
@@ -460,6 +555,221 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
       uploader: ev.uploader.toString(),
     }));
   }
+
+  // Enhanced Evidence Upload Component
+  const EvidenceUploadSection = () => (
+    <div style={{ marginTop: '20px' }}>
+      <h4 style={{ marginBottom: '15px', color: '#ffffff' }}>📎 Submit Evidence</h4>
+      
+      {/* Upload Mode Toggle */}
+      <div style={{ 
+        display: 'flex', 
+        marginBottom: '15px',
+        background: 'rgba(255,255,255,0.1)',
+        borderRadius: '8px',
+        padding: '4px'
+      }}>
+        <button
+          style={{
+            flex: 1,
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: '6px',
+            background: uploadMode === 'url' ? 'rgba(79, 70, 229, 0.8)' : 'transparent',
+            color: '#ffffff',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'all 0.3s ease'
+          }}
+          onClick={() => {
+            setUploadMode('url');
+            setSelectedFile(null);
+            setFilePreview(null);
+          }}
+        >
+          🔗 URL
+        </button>
+        <button
+          style={{
+            flex: 1,
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: '6px',
+            background: uploadMode === 'file' ? 'rgba(79, 70, 229, 0.8)' : 'transparent',
+            color: '#ffffff',
+            cursor: 'pointer',
+            fontSize: '14px',
+            transition: 'all 0.3s ease'
+          }}
+          onClick={() => {
+            setUploadMode('file');
+            setEvidenceUrl('');
+          }}
+        >
+          📁 File Upload
+        </button>
+      </div>
+
+      {/* URL Mode */}
+      {uploadMode === 'url' && (
+        <input
+          style={styles.input}
+          type="text"
+          placeholder="Evidence URL"
+          value={evidenceUrl}
+          onChange={e => setEvidenceUrl(e.target.value)}
+          disabled={!!loading}
+        />
+      )}
+
+      {/* File Mode */}
+      {uploadMode === 'file' && (
+        <div style={{ marginBottom: '15px' }}>
+          <div style={{
+            border: '2px dashed rgba(79, 70, 229, 0.5)',
+            borderRadius: '12px',
+            padding: '20px',
+            textAlign: 'center' as const,
+            background: 'rgba(79, 70, 229, 0.05)',
+            transition: 'all 0.3s ease',
+            cursor: 'pointer',
+            position: 'relative' as const
+          }}>
+            <input
+              type="file"
+              accept="image/*,application/pdf,.doc,.docx,.txt,.mp4,.mp3,.xlsx,.xls"
+              onChange={handleFileSelect}
+              disabled={!!loading}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer'
+              }}
+            />
+            
+            {selectedFile ? (
+              <div>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>
+                  {getFileIcon(selectedFile.type)}
+                </div>
+                <div style={{ color: '#ffffff', fontWeight: '600', marginBottom: '4px' }}>
+                  {selectedFile.name}
+                </div>
+                <div style={{ color: '#a1a1aa', fontSize: '12px' }}>
+                  {formatFileSize(selectedFile.size)} • {selectedFile.type}
+                </div>
+                
+                {filePreview && (
+                  <img 
+                    src={filePreview} 
+                    alt="Preview" 
+                    style={{ 
+                      maxWidth: '200px', 
+                      maxHeight: '150px', 
+                      marginTop: '10px',
+                      borderRadius: '8px',
+                      objectFit: 'cover' as const
+                    }} 
+                  />
+                )}
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>📁</div>
+                <div style={{ color: '#ffffff', marginBottom: '4px' }}>
+                  Click to select a file
+                </div>
+                <div style={{ color: '#a1a1aa', fontSize: '12px' }}>
+                  Images, PDFs, Documents, Videos (Max 10MB)
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {selectedFile && (
+            <button
+              style={{
+                marginTop: '8px',
+                padding: '6px 12px',
+                background: 'rgba(239, 68, 68, 0.2)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '6px',
+                color: '#ffffff',
+                cursor: 'pointer',
+                fontSize: '12px'
+              }}
+              onClick={() => {
+                setSelectedFile(null);
+                setFilePreview(null);
+                setEvidenceDesc('');
+              }}
+            >
+              🗑️ Remove File
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Description Input */}
+      <input
+        style={styles.input}
+        type="text"
+        placeholder="Brief description of the evidence"
+        value={evidenceDesc}
+        onChange={e => setEvidenceDesc(e.target.value)}
+        disabled={!!loading}
+      />
+
+      {/* Upload Progress */}
+      {uploadProgress > 0 && uploadProgress < 100 && (
+        <div style={{
+          width: '100%',
+          height: '4px',
+          background: 'rgba(255,255,255,0.2)',
+          borderRadius: '2px',
+          marginBottom: '10px',
+          overflow: 'hidden'
+        }}>
+          <div
+            style={{
+              width: `${uploadProgress}%`,
+              height: '100%',
+              background: 'linear-gradient(90deg, #4F46E5, #7C3AED)',
+              transition: 'width 0.3s ease'
+            }}
+          />
+        </div>
+      )}
+
+      {/* Upload Button */}
+      <button
+        style={styles.button}
+        className="hover-glow"
+        onClick={handleUploadEvidence}
+        disabled={
+          !!loading || 
+          (uploadMode === 'url' && (!evidenceUrl || !evidenceDesc)) ||
+          (uploadMode === 'file' && (!selectedFile || !evidenceDesc))
+        }
+      >
+        {uploadMode === 'file' ? '📤 Upload File' : '📎 Submit URL'}
+      </button>
+
+      {/* Supported Formats Info */}
+      <div style={{
+        fontSize: '11px',
+        color: '#a1a1aa',
+        marginTop: '8px',
+        textAlign: 'center' as const
+      }}>
+        Supported: Images (JPG, PNG, GIF), PDFs, Documents (DOC, TXT), Videos (MP4), Audio (MP3), Spreadsheets (XLSX)
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -674,31 +984,8 @@ const Dashboard: React.FC<DashboardProps> = ({ principal, onComplete }) => {
                 📤 Send
               </button>
 
-              <h4 style={{ marginTop: '20px', marginBottom: '10px', color: '#ffffff' }}>📎 Submit Evidence</h4>
-              <input
-                style={styles.input}
-                type="text"
-                placeholder="Evidence URL"
-                value={evidenceUrl}
-                onChange={e => setEvidenceUrl(e.target.value)}
-                disabled={!!loading}
-              />
-              <input
-                style={styles.input}
-                type="text"
-                placeholder="Short description"
-                value={evidenceDesc}
-                onChange={e => setEvidenceDesc(e.target.value)}
-                disabled={!!loading}
-              />
-              <button
-                style={styles.button}
-                className="hover-glow"
-                onClick={handleUploadEvidence}
-                disabled={!!loading || !evidenceUrl || !evidenceDesc}
-              >
-                📎 Upload Evidence
-              </button>
+               {/* Enhanced Evidence Upload Section */}
+              <EvidenceUploadSection />
             </div>
 
             {/* AI Legal Section */}
