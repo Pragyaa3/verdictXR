@@ -1356,7 +1356,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, setCurrentView }) =>
                 }}
               >
                 Terms of Use
-              </a>            </div>
+              </a>
+            </div>
 
             <button
               style={styles.headerCtaButton}
@@ -1894,32 +1895,34 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={
           currentView === 'about' ? <AboutPage onBack={() => setCurrentView('landing')} /> :
-          (currentView === 'dashboard' && isAuthenticated && principal ?
-            <>
-              <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(20px)', padding: '15px 20px', zIndex: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#ffffff', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                <div style={{ fontSize: '16px', fontWeight: '600' }}>
-                  VerdictXR Dashboard
-                </div>
-                <div>
-                  <button
-                    style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
-                    onClick={() => setCurrentView('about')}
-                  >
-                    Platform Info
-                  </button>
-                  <button
-                    style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', marginLeft: '8px' }}
-                    onClick={handleLogout}
-                  >
-                    Disconnect
-                  </button>
-                </div>
-              </nav>
-              <div style={{ paddingTop: '60px', background: '#000000', minHeight: '100vh' }}>
-                <Dashboard principal={principal} onComplete={handleComplete} />
-              </div>
-            </>
-          : <LandingPage onLogin={handleLogin} />)
+            currentView === 'privacy' ? <PrivacyPolicyPage onBack={() => setCurrentView('landing')} /> :
+              currentView === 'terms' ? <TermsOfUsePage onBack={() => setCurrentView('landing')} /> :
+                (currentView === 'dashboard' && isAuthenticated && principal ?
+                  <>
+                    <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(0, 0, 0, 0.9)', backdropFilter: 'blur(20px)', padding: '15px 20px', zIndex: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#ffffff', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                      <div style={{ fontSize: '16px', fontWeight: '600' }}>
+                        VerdictXR Dashboard
+                      </div>
+                      <div>
+                        <button
+                          style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                          onClick={() => setCurrentView('about')}
+                        >
+                          Platform Info
+                        </button>
+                        <button
+                          style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s ease', marginLeft: '8px' }}
+                          onClick={handleLogout}
+                        >
+                          Disconnect
+                        </button>
+                      </div>
+                    </nav>
+                    <div style={{ paddingTop: '60px', background: '#000000', minHeight: '100vh' }}>
+                      <Dashboard principal={principal} onComplete={handleComplete} />
+                    </div>
+                  </>
+                  : <LandingPage onLogin={handleLogin} setCurrentView={setCurrentView} />)
         } />
         <Route path="/vr-courtroom" element={<CourtroomVRFullPageWrapper />} />
       </Routes>
